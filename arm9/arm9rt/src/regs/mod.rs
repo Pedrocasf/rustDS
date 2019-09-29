@@ -1,0 +1,13 @@
+use volatile::*;
+pub const IME:Volatile<u32> = unsafe{*(0x04000208 as *mut Volatile<u32>)};
+pub const IE:Volatile<u32> = unsafe{*(0x04000210 as *mut Volatile<u32>)};
+pub const IF:Volatile<u32> = unsafe{*(0x04000214 as *mut Volatile<u32>)};
+pub const POWCNT1:Volatile<u16> = unsafe{*(0x04000304 as *mut Volatile<u16>)};
+pub const DISPCNT:Volatile<u32> = unsafe{*(0x04000000 as *mut Volatile<u32>)};
+pub const VRAMBASE:[Volatile<u16>;0x10000] = unsafe{*(0x06800000 as *mut [Volatile<u16>;0x10000])};
+pub const IPCFIFORECV:ReadOnly<u32> = unsafe{*(0x04100000 as *mut ReadOnly<u32>)};
+pub const BG0CNT:Volatile<u16> = unsafe{*(0x04000008 as *mut Volatile<u16>)};
+pub const BGPRAM:[Volatile<u16>;0x100] = unsafe{*(0x05000000 as *mut [Volatile<u16>;0x100])};
+pub const IPCFIFOCNT:Volatile<u32> = unsafe{*(0x04000184 as *mut Volatile<u32>)};
+pub const IPCSYNC:Volatile<u32> = unsafe{*(0x04000180 as *mut Volatile<u32>)};
+pub const VRAMABG:[Volatile<u32>;0x80000] = unsafe{*(0x06000000 as *mut [Volatile<u32>;0x80000])};

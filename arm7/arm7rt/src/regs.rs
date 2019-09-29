@@ -1,0 +1,9 @@
+pub const POWCNT2:*mut u32 = 0x04000304 as *mut u32;
+pub const SPICNT:*mut u16 = 0x040001C0 as *mut u16;
+pub const SPIDATA:*mut u8 = 0x040001C2 as *mut u8;
+pub const VRAMSTAT:*mut u8 = 0x04000240 as *mut u8;
+pub const IME:*mut u32 = 0x04000208 as *mut u32;
+pub const IPCFIFOSEND:*mut u32 = 0x04000188 as *mut u32;
+pub const IPCFIFOCNT:*mut u32 = 0x04000184 as *mut u32;
+pub const IPCSYNC:*mut u32 = 0x04000180 as *mut u32;
+pub const IE:*mut u32 = 0x04000210 as *mut u32;
