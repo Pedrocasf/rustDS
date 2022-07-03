@@ -1,0 +1,38 @@
+[package]
+name = "arm9rt"
+version = "0.1.0"
+authors = ["pedrosf"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[profile.release]
+opt-level = 3
+lto = true
+panic = "abort"
+incremental = false
+codegen-units = 1
+
+[profile.dev]
+opt-level = 3
+lto = true
+panic = "abort"
+incremental = false
+codegen-units = 1
+
+[dependencies]
+voladdress = "0.4.5"
+embedded-graphics-core = "0.3.2"
+gba-proc-macro = "0.5"
+fixed = "1.11.0"
+typenum = "1.10"
+
+[dependencies.derive_more]
+version = "0.99.14"
+default_features = false
+features = ["add"]
+
+[dependencies.linked_list_allocator]
+path = "../linked-list-allocator"
+default_features = false
+features = ["no_atomics", "const_mut_refs"]

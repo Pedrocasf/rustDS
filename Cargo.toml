@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "arm7app",
+    "arm7rt",
+    "arm9app",
+    "arm9rt",
+    "linked-list-allocator"
+]

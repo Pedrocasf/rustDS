@@ -1,18 +1,15 @@
-all: clean arm9 arm7 rsdstool
+all: arm9 arm7 dstool
 
 arm9:
-	$(MAKE) -C arm9/arm9app/
-	arm-none-eabi-objcopy arm9/arm9app.bin rsdstool/arm9.bin
+	$(MAKE) -C arm9app
 
 arm7:
-	$(MAKE) -C arm7/arm7app/
-	arm-none-eabi-objcopy arm7/arm7app.bin rsdstool/arm7.bin
+	$(MAKE) -C arm7app
 
-rsdstool:
-	$(MAKE) -C rsdstool
+dstool:
+	ndstool	-c rusds.nds -7 arm7app.bin -9 arm9app.bin -i
 
 clean:
-	$(MAKE) clean -C arm7/arm7app/ 
-	$(MAKE) clean -C arm9/arm9app/ 
+	$(MAKE) clean -C arm7app
+	$(MAKE) clean -C arm9app
 	$(MAKE) clean -C rsdstool
-	rm -rf *.nds
