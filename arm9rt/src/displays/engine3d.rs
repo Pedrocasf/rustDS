@@ -1,4 +1,4 @@
-pub mod E3D{
+pub mod e3d {
     use crate::macros::*;
     use alloc::boxed::Box;
     use core::{borrow::BorrowMut, u32, usize};
@@ -6,7 +6,8 @@ pub mod E3D{
     use crate::power::POWCNT::{POWCNT1, PowCnt1Opts};
     use voladdress::*;
     use crate::*;
-    use linked_list_allocator::{RefCell, RefMut};
+    use crate::buddy_alloc;
+    use core::cell::RefCell;
     use fixed::types::I13F3;
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
     #[repr(transparent)]
@@ -74,8 +75,8 @@ pub mod E3D{
     pub struct SwapBuffers(u32);
     impl SwapBuffers{
         const_new!();
-        bitfield_bool!(u32;0,get_AutoSort,with_AutoSort,set_AutoSort);
-        bitfield_bool!(u32;1,get_DepthBuffering,with_DepthBuffering,set_DepthBuffering);
+        bitfield_bool!(u32;0,get_auto_sort,with_auto_sort,set_auto_sort);
+        bitfield_bool!(u32;1,get_depth_buffering,with_depth_buffering,set_depth_buffering);
     }
     pub const SWAPBUFFRES :VolAddress<SwapBuffers,(),Safe> = unsafe { VolAddress::new(0x04000540) };
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -90,15 +91,17 @@ pub mod E3D{
     pub struct MatrixPop(i32);
     impl MatrixPop{
         const_new!();
-        bitfield_int !(i32;0..=5:i32,get_MatrixPop,with_MatrixPop,set_MatrixPop);
+        bitfield_int !(i32;0..=5:i32,get_matrix_pop,with_matrix_pop,set_matrix_pop);
     }
     pub const MTXPOP :VolAddress<MatrixPop,(),Safe> = unsafe { VolAddress::new(0x04000448) };
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
     #[repr(transparent)]
     pub struct MatrixMode(u32);
+
+
     impl MatrixMode{
         const_new!();
-        bitfield_enum!(u32;0..=1:GlMatrixModeEnum,get_MatrixMode,with_MatrixMode,set_MatrixMode);
+        bitfield_enum!(u32;0..=1:GlMatrixModeEnum,get_matrix_mode,with_matrix_mode,set_matrix_mode);
     }
     pub const MTXMODE :VolAddress<MatrixMode,(),Safe> = unsafe { VolAddress::new(0x04000440) };
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -106,12 +109,12 @@ pub mod E3D{
     pub struct GxStatOpts(u32);
     impl GxStatOpts{
         const_new!();
-        bitfield_int! (u32;8..=12:u32,get_PositionVectorMatrixStack,with_PositionVectorMatrixStack,set_PositionVectorMatrixStack);
-        bitfield_bool!(u32;13,get_ProjectionMatrixStack,with_ProjectionMatrixStack,set_ProjectionMatrixStack);
-        bitfield_bool!(u32;14,get_MatrixStackBusy,with_MatrixStackBusy,set_MatrixStackBusy);
-        bitfield_bool!(u32;15,get_MatrixStackError,with_MatrixStackError,set_MatrixStackError);
-        bitfield_bool!(u32;27,get_GeometryEngineBusy,with_GeometryEngineBusy,set_GeometryEngineBusy);
-        bitfield_bool!(u32;29,get_ClearFifo,with_ClearFifo,set_ClearFifo);        
+        bitfield_int! (u32;8..=12:u32,get_position_vector_matrix_stack,with_position_vector_matrix_stack,set_position_vector_matrix_stack);
+        bitfield_bool!(u32;13,get_projection_matrix_stack,with_projection_matrix_stack,set_projection_matrix_stack);
+        bitfield_bool!(u32;14,get_matrix_stack_busy,with_matrix_stack_busy,set_matrix_stack_busy);
+        bitfield_bool!(u32;15,get_matrix_stack_error,with_matrix_stack_error,set_matrix_stack_error);
+        bitfield_bool!(u32;27,get_geometry_engine_busy,with_geometry_engine_busy,set_geometry_engine_busy);
+        bitfield_bool!(u32;29,get_clear_fifo,with_clear_fifo,set_clear_fifo);
     }
     pub const GXSTAT: VolAddress<GxStatOpts, Safe, Safe> = unsafe { VolAddress::new(0x04000600) };
     impl_bitwise_ops!(GxStatOpts);
@@ -121,18 +124,18 @@ pub mod E3D{
 
     impl Disp3DCntOpts {
         const_new!();
-        bitfield_bool!(u16;0,get_EnableTextureMapping,with_EnableTextureMapping,set_EnableTextureMapping);
-        bitfield_bool!(u16;1,get_ToonHighlightShading,with_ToonHighlightShading,set_ToonHighlightShading);
-        bitfield_bool!(u16;2,get_EnableAlphaTest ,with_EnableAlphaTest ,set_EnableAlphaTest);
-        bitfield_bool!(u16;3,get_EnableAlphaBlending,with_EnableAlphaBlending,set_EnableAlphaBlending);
-        bitfield_bool!(u16;4,get_EnableAntiAliasing,with_EnableAntiAliasing,set_EnableAntiAliasing);
-        bitfield_bool!(u16;5,get_EnableEdgeMarking,with_EnableEdgeMarking,set_EnableEdgeMarking);
-        bitfield_bool!(u16;6,get_FogColorAlpha,with_FogColorAlpha ,set_FogColorAlpha );
-        bitfield_bool!(u16;7,get_EenableFog,with_EenableFog,set_EenableFog);
-        bitfield_int !(u16;8..=11:u16,get_FogDepthShift,with_FogDepthShift,set_FogDepthShift);
-        bitfield_bool!(u16;12,get_UndeflowAck,with_UndeflowAck,set_UndeflowAck);
-        bitfield_bool!(u16;13,get_OverflowAck,with_OverflowAck,set_OverflowAck);
-        bitfield_bool!(u16;14,get_EnableRearBmp,with_EnableRearBmp,set_EnableRearBmp);
+        bitfield_bool!(u16;0,get_enable_texture_mapping,with_enable_texture_mapping,set_enable_texture_mapping);
+        bitfield_bool!(u16;1,get_toon_highlight_shading,with_toon_highlight_shading,set_toon_highlight_shading);
+        bitfield_bool!(u16;2,get_enable_alpha_test ,with_enable_alpha_test ,set_enable_alpha_test);
+        bitfield_bool!(u16;3,get_enable_alpha_blending,with_enable_alpha_blending,set_enable_alpha_blending);
+        bitfield_bool!(u16;4,get_enable_anti_aliasing,with_enable_anti_aliasing,set_enable_anti_aliasing);
+        bitfield_bool!(u16;5,get_enable_edge_marking,with_enable_edge_marking,set_enable_edge_marking);
+        bitfield_bool!(u16;6,get_fog_color_alpha,with_fog_color_alpha ,set_fog_color_alpha );
+        bitfield_bool!(u16;7,get_eenable_fog,with_eenable_fog,set_eenable_fog);
+        bitfield_int !(u16;8..=11:u16,get_fog_depth_shift,with_fog_depth_shift,set_fog_depth_shift);
+        bitfield_bool!(u16;12,get_undeflow_ack,with_undeflow_ack,set_undeflow_ack);
+        bitfield_bool!(u16;13,get_overflow_ack,with_overflow_ack,set_overflow_ack);
+        bitfield_bool!(u16;14,get_enable_rear_bmp,with_enable_rear_bmp,set_enable_rear_bmp);
     }
     pub const DISP3DCNT: VolAddress<Disp3DCntOpts, Safe, Safe> = unsafe { VolAddress::new(0x04000060) };
     impl_bitwise_ops!(Disp3DCntOpts);
@@ -263,7 +266,7 @@ pub mod E3D{
             }.clone())
         }
     }
-    pub fn glInit(disp3dcnt:Option<Disp3DCntOpts>, powcnt1:Option<PowCnt1Opts>){
+    pub fn gl_init(disp3dcnt:Option<Disp3DCntOpts>, powcnt1:Option<PowCnt1Opts>){
         if let Some(p) = powcnt1{
             POWCNT1.write(p);
         }else{
@@ -300,71 +303,71 @@ pub mod E3D{
                 glob.dealloc_pal.as_mut().unwrap()[i] = 0;
             }
         }
-        while GXSTAT.read().get_GeometryEngineBusy(){};
-        GXSTAT.write(GxStatOpts::new().with_ClearFifo(true));
-        glResetMatrixStack();
-        glFlush(SwapBuffers::new());
+        while GXSTAT.read().get_geometry_engine_busy(){};
+        GXSTAT.write(GxStatOpts::new().with_clear_fifo(true));
+        gl_reset_matrix_stack();
+        gl_flush(SwapBuffers::new());
         if let Some(c) = disp3dcnt{
             DISP3DCNT.write(c);
         }else{
             DISP3DCNT.write(Disp3DCntOpts::new());
         }
-        glClearColor(0, 0, 0, 31);
-        glClearPolyId(63);
-        glClearDepth(I13F3::MAX);
+        gl_clear_color(0, 0, 0, 31);
+        gl_clear_poly_id(63);
+        gl_clear_depth(I13F3::MAX);
         TEX_IMAGE_PARAM.write(TexImageParam::new());
         POLYGON_ATTR.write(PolygonAttr::new());
-        glMatrixMode(GlMatrixModeEnum::GlProjection);
-        glLoadIdentity();
-        glMatrixMode(GlMatrixModeEnum::GlModelView);
-        glLoadIdentity();
-        glMatrixMode(GlMatrixModeEnum::GlTexture);
-        glLoadIdentity();
+        gl_matrix_mode(GlMatrixModeEnum::GlProjection);
+        gl_load_identity();
+        gl_matrix_mode(GlMatrixModeEnum::GlModelView);
+        gl_load_identity();
+        gl_matrix_mode(GlMatrixModeEnum::GlTexture);
+        gl_load_identity();
     }
-    pub fn glViewPort(viewport: ViewPort){
+    pub fn gl_view_port(viewport: ViewPort){
         VIEWPORT.write(viewport);
     }
-    pub fn glClearDepth(depth:I13F3){
+    pub fn gl_clear_depth(depth:I13F3){
         CLEAR_DEPTH.write(depth);
     }
-    pub fn glClearPolyId(id:u8){
+    pub fn gl_clear_poly_id(id:u8){
         CLEAR_COLOR.write(ClearColor::new().with_poly_id(id));
     }
-    pub fn glClearColor(r:u8,g:u8,b:u8,a:u8){
+    pub fn gl_clear_color(r:u8, g:u8, b:u8, a:u8){
         GL_GLOBALS.borrow_mut().clear_color = ClearColor::new().with_a(a).with_r(r).with_g(g).with_b(b);
         CLEAR_COLOR.write(ClearColor::new().with_a(a).with_r(r).with_g(g).with_b(b));
     }
-    pub fn glFlush(sb:SwapBuffers){
+    pub fn gl_flush(sb:SwapBuffers){
         SWAPBUFFRES.write(sb);
     }
-    pub fn glResetMatrixStack(){
-        while GXSTAT.read().get_MatrixStackBusy(){
+    pub fn gl_reset_matrix_stack(){
+        while GXSTAT.read().get_matrix_stack_busy(){
             let mut stat = GXSTAT.read();
-            stat.set_MatrixStackError(true);
+            stat.set_matrix_stack_error(true);
             GXSTAT.write(stat);
         }
-        if GXSTAT.read().get_ProjectionMatrixStack(){
-            glMatrixMode(GlMatrixModeEnum::GlProjection);
-            glMatrixPop(1);
+        if GXSTAT.read().get_projection_matrix_stack(){
+            gl_matrix_mode(GlMatrixModeEnum::GlProjection);
+            gl_matrix_pop(1);
         }
-        glMatrixMode(GlMatrixModeEnum::GlModelView);
-        glMatrixPop((GXSTAT.read().get_PositionVectorMatrixStack() & 0x1F)as i32);
-        glMatrixMode(GlMatrixModeEnum::GlModelView);
-        glLoadIdentity();
-        glMatrixMode(GlMatrixModeEnum::GlProjection);
-        glLoadIdentity();
-        glMatrixMode(GlMatrixModeEnum::GlTexture);
-        glLoadIdentity();
+        gl_matrix_mode(GlMatrixModeEnum::GlModelView);
+        gl_matrix_pop((GXSTAT.read().get_position_vector_matrix_stack() & 0x1F)as i32);
+        gl_matrix_mode(GlMatrixModeEnum::GlModelView);
+        gl_load_identity();
+        gl_matrix_mode(GlMatrixModeEnum::GlProjection);
+        gl_load_identity();
+        gl_matrix_mode(GlMatrixModeEnum::GlTexture);
+        gl_load_identity();
     }
-    pub fn glMatrixMode(mode:GlMatrixModeEnum){
-        let mtx_mode = MatrixMode::new().with_MatrixMode(mode);
+    pub fn gl_matrix_mode(mode:GlMatrixModeEnum){
+        let mtx_mode = MatrixMode::new().with_matrix_mode(mode);
         MTXMODE.write(mtx_mode);
     }
-    pub fn glMatrixPop(count:i32){
-        let pop_count = MatrixPop::new().with_MatrixPop(count);
+    pub fn gl_matrix_pop(count:i32){
+        let pop_count = MatrixPop::new().with_matrix_pop(count);
         MTXPOP.write(pop_count);
     }
-    pub fn glLoadIdentity(){
+    pub fn gl_load_identity(){
         MTXIDENTITY.write(MatrixIdentity::new());
     }
 } 

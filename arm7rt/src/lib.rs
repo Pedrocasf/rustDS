@@ -34,7 +34,7 @@ pub unsafe extern "C" fn Reset() -> ! {
 
         static mut _siirq: u8;
     }
-    ptr::copy_nonoverlapping(&_siirq as *const u8, &mut __irq_vector as *mut u8, 4);
+    ptr::copy_nonoverlapping(&raw const _siirq as *const u8, &raw mut __irq_vector as *mut u8, 4);
 
     asm!("
 	mov	r5, #0x12
@@ -59,8 +59,8 @@ pub unsafe extern "C" fn Reset() -> ! {
         static _sidata: u8;
     }
 
-    let count = &_ebss as *const u8 as usize - &_sbss as *const u8 as usize;
-    ptr::write_bytes(&mut _sbss as *mut u8, 0, count);
+    let count = &raw const _ebss as *const u8 as usize - &raw const _sbss as *const u8 as usize;
+    ptr::write_bytes(&raw mut _sbss as *mut u8, 0, count);
 
     extern "Rust" {
         fn main() -> !;

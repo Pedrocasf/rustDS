@@ -17,4 +17,4 @@ lto = true
 panic = "abort"
 
 [dependencies]
-voladdress = "1.0.2"
+voladdress = "1.4.0"

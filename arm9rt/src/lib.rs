@@ -6,7 +6,7 @@
 #![feature(default_alloc_error_handler)]
 
 pub(crate) use voladdress::{VolAddress, VolBlock};
-extern crate linked_list_allocator;
+extern crate buddy_alloc;
 extern crate derive_more;
 extern crate alloc;
 pub mod consts;
@@ -23,6 +23,7 @@ pub use consts::*;
 use core::panic::PanicInfo;
 use core::ptr;
 use core::arch::asm;
+use buddy_alloc::*;
 pub use displays::{
     vram::*,
     a,
@@ -40,15 +41,19 @@ extern "C" {
     static mut _sheap :u8;
     static mut _heap_size: u8;
 }
-
-#[global_allocator]
-static mut ALLOCATOR: linked_list_allocator::CellHeap = linked_list_allocator::CellHeap::ALLOC;
-
-pub fn init_heap() {
-    unsafe {
-        ALLOCATOR.borrow_mut().init(&_sheap as *const u8 as usize ,&_heap_size as *const u8 as usize);
-    }
-}
+const FAST_HEAP_SIZE: usize = 8 *1024* 1024; // 32 KB
+const HEAP_SIZE: usize = 4 * 1024 * 1024; // 1M
+static mut FAST_HEAP: Heap<FAST_HEAP_SIZE> = Heap([0u8; FAST_HEAP_SIZE]);
+static mut HEAP: Heap<HEAP_SIZE> = Heap([0u8; HEAP_SIZE]);
+const LEAF_SIZE: usize = 16;
+#[repr(align(64))]
+struct Heap<const S: usize>([u8; S]);
+#[cfg_attr(not(test), global_allocator)]
+static ALLOC: NonThreadsafeAlloc = unsafe {
+    let fast_param = FastAllocParam::new(FAST_HEAP.0.as_ptr(), FAST_HEAP_SIZE);
+    let buddy_param = BuddyAllocParam::new(HEAP.0.as_ptr(), HEAP_SIZE, LEAF_SIZE);
+    NonThreadsafeAlloc::new(fast_param, buddy_param)
+};
 
 global_writer!(WRITER);
 
@@ -116,7 +121,6 @@ pub unsafe extern "C" fn Reset() -> ! {
     extern "Rust" {
         fn main() -> !;
     }
-    init_heap();
     main()
 }
 
