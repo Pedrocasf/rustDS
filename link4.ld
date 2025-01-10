@@ -1,14 +1,13 @@
 MEMORY {
-    swram   : ORIGIN = 0x03000000, LENGTH = 32K	
-	iwram   : ORIGIN = 0x03800000, LENGTH = 64K	
+	wram   : ORIGIN = 0x03800000, LENGTH = 96K
 }
 
 ENTRY(Reset)
 
-__iwram_start	=	ORIGIN(iwram);
-__iwram_top	    =	ORIGIN(iwram)+ LENGTH(iwram);
+__wram_start	=	ORIGIN(wram);
+__wram_top	    =	ORIGIN(wram)+ LENGTH(wram);
 
-__irq_vector	=   __iwram_top - 4;
+__irq_vector	=   __wram_top - 4;
 __irq_flags	    =	__irq_vector - 4;
 
 __irq_flagsaux	=	__irq_flags - 0x34;
@@ -23,13 +22,13 @@ SECTIONS {
     {
         *(.text .text.*);
         . = ALIGN(4);
-    } > iwram
+    } > wram
     
     .rodata :
     {
         *(.rodata .rodata.*);
         . = ALIGN(4);
-    } > iwram
+    } > wram
 
     .data : AT(ADDR(.rodata) + SIZEOF(.rodata))
     {
@@ -37,7 +36,7 @@ SECTIONS {
         *(.data .data.*);
         _edata = .;
         . = ALIGN(4);
-    } > iwram
+    } > wram
 
     _sidata = LOADADDR(.data);
 
@@ -45,7 +44,7 @@ SECTIONS {
     {
         KEEP(*(.irq));
         . = ALIGN(4);
-    } > iwram
+    } > wram
 
     _siirq = LOADADDR(.irq);
 
@@ -55,7 +54,7 @@ SECTIONS {
         *(.bss .bss.*);
         _ebss = .;
         . = ALIGN(4);
-    } > iwram
+    } > wram
     
     /DISCARD/ :
     {

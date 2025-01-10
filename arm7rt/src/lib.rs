@@ -1,4 +1,5 @@
 #![no_std]
+#![feature(start)]
 extern crate voladdress;
 
 pub mod consts;
@@ -13,10 +14,11 @@ pub use regs::*;
 #[panic_handler]
 fn panic(_panic: &PanicInfo<'_>) -> ! {
     IME.write(0x00000000);
-    loop{}
+    loop {
+        unsafe { asm!("hlt") }
+    }
 }
 
-#[link_section = ".crt0"]
 #[no_mangle]
 pub unsafe extern "C" fn Reset() -> ! {
     IME.write(0x00000000);
@@ -34,22 +36,20 @@ pub unsafe extern "C" fn Reset() -> ! {
 
         static mut _siirq: u8;
     }
-    ptr::copy_nonoverlapping(&raw const _siirq as *const u8, &raw mut __irq_vector as *mut u8, 4);
+    asm!(
+	"mov	r5, 0x12",
+	"msr	cpsr, r5",
+	"ldr	sp, =__sp_irq",
 
-    asm!("
-	mov	r5, #0x12
-	msr	cpsr, r5
-	ldr	sp, =__sp_irq
+	"mov	r5, #0x13",
+	"msr	cpsr, r5",
+	"ldr	sp, =__sp_svc",
 
-	mov	r5, #0x13
-	msr	cpsr, r5
-	ldr	sp, =__sp_svc
-
-	mov	r5, #0x1F
-	msr	cpsr, r5
-    ldr	sp, =__sp_usr
-    "
+	"mov	r5, #0x1F",
+	"msr	cpsr, r5",
+    "ldr	sp, =__sp_usr",
     );
+    ptr::copy_nonoverlapping(&raw const _siirq as *const u8, &raw mut __irq_vector as *mut u8, 4);
     extern "C" {
         static mut _sbss: u8;
         static mut _ebss: u8;

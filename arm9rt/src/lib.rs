@@ -63,7 +63,6 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
     println!("{}", _panic);
     halt()
 }
-
 #[no_mangle]
 pub unsafe extern "C" fn Reset() -> ! {
     extern "C" {
@@ -78,23 +77,25 @@ pub unsafe extern "C" fn Reset() -> ! {
         static mut __sp_svc: u8;
         static mut __sp_usr: u8;
     }
-
+    /*
+    extern "C"{
+        fn set_sp();
+    }
+        set_sp();
+    */
     asm!(
-        "
-	mov	r5, #0x12
-	msr	cpsr, r5
-	ldr	sp, =__sp_irq
+        "mov	r5, #0x12",
+	    "msr	cpsr, r5",
+	    "ldr	sp, =__sp_irq",
 
-	mov	r5, #0x13
-	msr	cpsr, r5
-	ldr	sp, =__sp_svc
+	    "mov	r5, #0x13",
+	    "msr	cpsr, r5",
+	    "ldr	sp, =__sp_svc",
 
-	mov	r5, #0x1F
-	msr	cpsr, r5
-	ldr	sp, =__sp_usr
-    "
+	    "mov	r5, #0x1F",
+	    "msr	cpsr, r5",
+	    "ldr	sp, =__sp_usr",
     );
-
     extern "C" {
         fn __libnds_mpu_setup();
     }

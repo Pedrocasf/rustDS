@@ -279,6 +279,7 @@ pub mod e3d {
                 .with_DisplaySwap(true);
             POWCNT1.write(powcnt1_default);
         }
+        panic!("crashes here");
         if let Ok(mut glob) = GL_GLOBALS.try_borrow_mut(){
 
             glob.vram_blocks[0] = Some(VramBlock::construct(0x6800000, 0x6880000));              

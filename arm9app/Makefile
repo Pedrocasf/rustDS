@@ -1,11 +1,11 @@
 TARGET = arm9app
-ARCH = armv5-none-dsi
+ARCH = armv5te-none-eabi
 MODE = release
 all: xbuild copy
 
 xbuild:
-	cargo xbuild --target $(ARCH).json --$(MODE)
+	cargo build --$(MODE)
 copy:
-	arm-none-eabi-objcopy ../target/$(ARCH)/$(MODE)/$(TARGET) ../$(TARGET).bin
+	/opt/devkitpro/devkitARM/bin/arm-none-eabi-objcopy ../target/$(ARCH)/$(MODE)/$(TARGET) ../$(TARGET).bin
 clean:
 	cargo clean
