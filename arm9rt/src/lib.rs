@@ -8,6 +8,7 @@
 pub(crate) use voladdress::{VolAddress, VolBlock};
 extern crate buddy_alloc;
 extern crate derive_more;
+extern crate simba;
 extern crate alloc;
 pub mod consts;
 pub mod displays;

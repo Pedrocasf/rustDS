@@ -8,7 +8,115 @@ pub mod e3d {
     use crate::*;
     use crate::buddy_alloc;
     use core::cell::RefCell;
-    use fixed::types::I13F3;
+    use simba::scalar::{FixedI13F3, FixedI3F13};
+    use crate::dma::SrcAddrControl::Fixed;
+    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+    #[repr(transparent)]
+    pub struct MatrixMode(u32);
+    impl MatrixMode{
+        const_new!();
+        bitfield_enum!(u32;0..=1:GlMatrixModeEnum,get_matrix_mode,with_matrix_mode,set_matrix_mode);
+    }
+    pub const MTXMODE :VolAddress<MatrixMode,(),Safe> = unsafe { VolAddress::new(0x04000440) };
+    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+    #[repr(transparent)]
+    pub struct MatrixPush(i32);
+    impl MatrixPop{
+        const_new!();
+        bitfield_int !(i32;0..=5:i32,get_matrix_push,with_matrix_push,set_matrix_push);
+    }
+    pub const MTXPUSH :VolAddress<MatrixPush,(),Safe> = unsafe { VolAddress::new(0x04000444) };
+
+    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+    #[repr(transparent)]
+    pub struct MatrixPop(i32);
+    impl MatrixPop{
+        const_new!();
+        bitfield_int !(i32;0..=5:i32,get_matrix_pop,with_matrix_pop,set_matrix_pop);
+    }
+    pub const MTXPOP :VolAddress<MatrixPop,(),Safe> = unsafe { VolAddress::new(0x04000448) };
+
+    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+    #[repr(transparent)]
+    pub struct MatrixStore(i32);
+    impl MatrixStore{
+        const_new!();
+        bitfield_int !(i32;0..=5:i32,get_matrix_store,with_matrix_store,set_matrix_store);
+    }
+    pub const MTXSTOR :VolAddress<MatrixStore,(),Safe> = unsafe { VolAddress::new(0x0400044C) };
+    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+    #[repr(transparent)]
+    pub struct MatrixReStore(i32);
+    impl MatrixReStore{
+        const_new!();
+        bitfield_int !(i32;0..=5:i32,get_matrix_restore,with_matrix_restore,set_matrix_restore);
+    }
+    pub const MTXRESTOR :VolAddress<MatrixReStore,(),Safe> = unsafe { VolAddress::new(0x04000450) };
+
+    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+    #[repr(transparent)]
+    pub struct MatrixIdent(i32);
+    impl MatrixIdent{
+        const_new!();
+        bitfield_int !(i32;0..=5:i32,get_matrix_ident,with_matrix_ident,set_matrix_ident);
+    }
+    pub const MTXIDENT :VolAddress<MatrixIdent,(),Safe> = unsafe { VolAddress::new(0x04000454) };
+    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+    #[repr(transparent)]
+    pub struct MatrixLoad4x4(i32);
+    impl MatrixLoad4x4{
+        const_new!();
+        bitfield_int!(i32;0..=5:i32,get_matrix_L4x4,with_matrix_L4x4,set_matrix_L4x4);
+    }
+    pub const MTXL4X4:VolAddress<MatrixLoad4x4,(),Safe> = unsafe { VolAddress::new(0x04000458) };
+    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+    #[repr(transparent)]
+    pub struct MatrixLoad4x3(i32);
+    impl MatrixLoad4x3{
+        const_new!();
+        bitfield_int!(i32;0..=5:i32,get_matrix_L4x3,with_matrix_L4x3,set_matrix_L4x3);
+    }
+    pub const MTXL4X3:VolAddress<MatrixLoad4x3,(),Safe> = unsafe { VolAddress::new(0x0400045C) };
+    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+    #[repr(transparent)]
+    pub struct MatrixMul4x4(i32);
+    impl MatrixMul4x4{
+        const_new!();
+        bitfield_int!(i32;0..=5:i32,get_matrix_M4x4,with_matrix_M4x4,set_matrix_M4x4);
+    }
+    pub const MTXM4X4:VolAddress<MatrixMul4x4,(),Safe> = unsafe { VolAddress::new(0x04000460) };
+    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+    #[repr(transparent)]
+    pub struct MatrixMul4x3(i32);
+    impl MatrixMul4x3{
+        const_new!();
+        bitfield_int!(i32;0..=5:i32,get_matrix_M4x3,with_matrix_M4x3,set_matrix_M4x3);
+    }
+    pub const MTXM4X3:VolAddress<MatrixMul4x3,(),Safe> = unsafe { VolAddress::new(0x04000464) };
+    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+    #[repr(transparent)]
+    pub struct MatrixMul3x3(i32);
+    impl MatrixMul3x3{
+        const_new!();
+        bitfield_int!(i32;0..=5:i32,get_matrix_M3x3,with_matrix_M3x3,set_matrix_M3x3);
+    }
+    pub const MTXM3X3:VolAddress<MatrixMul3x3,(),Safe> = unsafe { VolAddress::new(0x04000468) };
+    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+    #[repr(transparent)]
+    pub struct MatrixScale(i32);
+    impl MatrixScale{
+        const_new!();
+        bitfield_int!(i32;0..=5:i32,get_matrix_scale,with_matrix_scale,set_matrix_scale);
+    }
+    pub const MTXSCALE:VolAddress<MatrixScale,(),Safe> = unsafe { VolAddress::new(0x0400046C) };
+    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+    #[repr(transparent)]
+    pub struct MatrixTransform(i32);
+    impl MatrixTransform{
+        const_new!();
+        bitfield_int!(i32;0..=5:i32,get_matrix_transform,with_matrix_transform,set_matrix_transform);
+    }
+    pub const MTXTR:VolAddress<MatrixTransform,(),Safe> = unsafe { VolAddress::new(0x04000470) };
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
     #[repr(transparent)]
     pub struct ViewPort(u32);
@@ -55,7 +163,7 @@ pub mod e3d {
     }
     pub const TEX_IMAGE_PARAM:VolAddress<TexImageParam,(),Safe> = unsafe { VolAddress::new(0x040004A8) };
     
-    pub const CLEAR_DEPTH:VolAddress<I13F3,(),Safe> = unsafe{VolAddress::new(0x04000354)};
+    pub const CLEAR_DEPTH:VolAddress<FixedI13F3,(),Safe> = unsafe{VolAddress::new(0x04000354)};
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
     #[repr(transparent)]
     pub struct ClearColor(u32);
@@ -86,24 +194,7 @@ pub mod e3d {
         const_new!();
     }
     pub const MTXIDENTITY :VolAddress<MatrixIdentity,(),Safe> = unsafe { VolAddress::new(0x04000454) };
-    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-    #[repr(transparent)]
-    pub struct MatrixPop(i32);
-    impl MatrixPop{
-        const_new!();
-        bitfield_int !(i32;0..=5:i32,get_matrix_pop,with_matrix_pop,set_matrix_pop);
-    }
-    pub const MTXPOP :VolAddress<MatrixPop,(),Safe> = unsafe { VolAddress::new(0x04000448) };
-    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-    #[repr(transparent)]
-    pub struct MatrixMode(u32);
 
-
-    impl MatrixMode{
-        const_new!();
-        bitfield_enum!(u32;0..=1:GlMatrixModeEnum,get_matrix_mode,with_matrix_mode,set_matrix_mode);
-    }
-    pub const MTXMODE :VolAddress<MatrixMode,(),Safe> = unsafe { VolAddress::new(0x04000440) };
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
     #[repr(transparent)]
     pub struct GxStatOpts(u32);
@@ -315,7 +406,7 @@ pub mod e3d {
         }
         gl_clear_color(0, 0, 0, 31);
         gl_clear_poly_id(63);
-        gl_clear_depth(I13F3::MAX);
+        gl_clear_depth(FixedI13F3::from_bits(0x7FFF));
         TEX_IMAGE_PARAM.write(TexImageParam::new());
         POLYGON_ATTR.write(PolygonAttr::new());
         gl_matrix_mode(GlMatrixModeEnum::GlProjection);
@@ -328,7 +419,7 @@ pub mod e3d {
     pub fn gl_view_port(viewport: ViewPort){
         VIEWPORT.write(viewport);
     }
-    pub fn gl_clear_depth(depth:I13F3){
+    pub fn gl_clear_depth(depth:FixedI13F3){
         CLEAR_DEPTH.write(depth);
     }
     pub fn gl_clear_poly_id(id:u8){
