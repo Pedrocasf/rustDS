@@ -25,7 +25,7 @@ fn main() -> ! {
     IE.write(0);
     let mut dispcnt = DispCnt::new().with_BG0_3D(true).with_bg_mode(6).with_display_mode(1);
     DISPCNT.write(dispcnt);
-    let mut e3d = gl_init(None, None);
+    //let mut e3d = gl_init(None, None);
     let mut r = 31;
     let mut g = 31;
     let mut b = 31;
