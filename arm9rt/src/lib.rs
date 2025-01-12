@@ -11,7 +11,7 @@ extern crate derive_more;
 extern crate simba;
 extern crate alloc;
 pub mod consts;
-pub mod displays;
+pub mod video;
 pub mod irq;
 pub mod regs;
 pub mod sync;
@@ -25,7 +25,7 @@ use core::panic::PanicInfo;
 use core::ptr;
 use core::arch::asm;
 use buddy_alloc::*;
-pub use displays::{
+pub use video::{
     vram::*,
     a,
 };

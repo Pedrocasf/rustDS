@@ -10,7 +10,6 @@ use core::panic::PanicInfo;
 use core::arch::asm;
 use core::ptr;
 pub use regs::*;
-
 #[panic_handler]
 fn panic(_panic: &PanicInfo<'_>) -> ! {
     IME.write(0x00000000);

@@ -1,4 +1,4 @@
-use crate::displays::vram::*;
+use crate::video::vram::*;
 use crate::regs::*;
 use core::fmt;
 pub const COLOR: u16 = 5 << 8;

@@ -6,8 +6,7 @@
 extern crate arm9rt;
 extern crate alloc;
 extern crate tinybmp;
-extern crate fixed;
-
+extern crate simba;
 use core::arch::asm;
 use embedded_graphics::prelude::*;
 use arm9rt::*;
@@ -16,23 +15,41 @@ pub mod vertices;
 pub mod world;
 use vertices::*;
 use world::*;
-use fixed::types::I8F8;
-use arm9rt::{a::*, regs::*,displays::e3d::*};
+use simba::scalar::FixedI13F3;
+use arm9rt::{a::*, regs::*, video::e3d::*};
+use arm9rt::dma::SrcAddrControl::Fixed;
+use fixed::types::I13F3;
+use arm9rt::video::e3d::GXFIFO;
 entry!(main);
+const Triangle:[u32;13] = [
+    12,
+    FIFO_COMMAND_PACK(GXFIFO::BEGIN_VTXS as u32, GXFIFO::COLOR as u32, GXFIFO::VTX_16 as u32, GXFIFO::COLOR as u32),
+    Begin::Triangles as u32,
+    RGB15(31,0,0) as u32,
+    VERTEX_PACK(INT_TO_V16(-1), INT_TO_V16(-1)) as u32, VERTEX_PACK(0,0) as u32,
+    RGB15(0,31,0) as u32,
+    FIFO_COMMAND_PACK(GXFIFO::VTX_16 as u32, GXFIFO::COLOR as u32, GXFIFO::VTX_16 as u32, GXFIFO::END_VTXS as u32),
+    VERTEX_PACK(INT_TO_V16(1), INT_TO_V16(-1)) as u32, VERTEX_PACK(0,0) as u32,
+    RGB15(0,0,31) as u32,
+    VERTEX_PACK(INT_TO_V16(0), INT_TO_V16(1)) as u32, VERTEX_PACK(0,0) as u32,
+];
 fn main() -> ! {
     start_fnt();
     IME.write(0);
     IE.write(0);
-    let mut dispcnt = DispCnt::new().with_BG0_3D(true).with_bg_mode(6).with_display_mode(1);
+    let dispcnt = DispCnt::new().with_BG0_3D(true).with_bg_mode(6).with_display_mode(1);
     DISPCNT.write(dispcnt);
-    //let mut e3d = gl_init(None, None);
-    let mut r = 31;
-    let mut g = 31;
-    let mut b = 31;
+    let e3d = GL::new(None, None);
+    let mut r = 0;
+    let mut g = 0;
+    let mut b = 0;
+    GL::clear_color(r,g,b,31);
+    GL::clear_poly_id(63);
+    GL::clear_depth(FixedI13F3::from_bits(0x7FFF));
     let viewport = ViewPort::new().with_x1(0).with_y1(0).with_x2(255).with_y2(191);
-    gl_view_port(viewport);
-    gl_matrix_mode(GlMatrixModeEnum::GlProjection);
-    gl_load_identity();
+    GL::view_port(viewport);
+    GL::matrix_mode(GlMatrixModeEnum::GlProjection);
+    GL::load_identity();
     loop {
         if KEYINPUT.read() & 0x0010 == 0 {
             r +=1;
@@ -46,8 +63,8 @@ fn main() -> ! {
         if KEYINPUT.read() & 0x0080 == 0 {
             
         }
-        gl_clear_color(r, g, b, 31);
-        gl_flush(SwapBuffers::new());
+        GL::clear_color(r, g, b, 31);
+        GL::flush(SwapBuffers::new());
         //particle.draw_sprites(&mut bg3, &TEXTURES);
         unsafe{
             asm!("swi 0x50000")
