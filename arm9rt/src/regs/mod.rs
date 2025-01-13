@@ -8,10 +8,11 @@ pub const IF: VolAddress<u32, Safe, Safe> = unsafe { VolAddress::new(0x04000214)
 #[repr(transparent)]
 pub struct DispCnt(u32);
 impl DispCnt{
-    const_new!();
-    bitfield_int!(u32;16..=17:u32,get_display_mode,with_display_mode,set_display_mode);
-    bitfield_int!(u32;0..=2:u32,get_bg_mode,with_bg_mode,set_bg_mode);
-    bitfield_bool!(u32;3,get_BG0_3D,with_BG0_3D,set_BG0_3D);
+    pub_const_fn_new_zeroed!();
+    u32_int_field!(16 - 17,get_display_mode,with_display_mode);
+    u32_int_field!(0 - 2,get_bg_mode,with_bg_mode);
+    u32_bool_field!(8,get_BG0_en,with_BG0_en);
+    u32_bool_field!(3,get_BG0_3D,with_BG0_3D);
 }
 pub const DISPCNT: VolAddress<DispCnt, Safe, Safe> = unsafe { VolAddress::new(0x04000000) };
 pub const DISPCNT_B: VolAddress<u32, Safe, Safe> = unsafe { VolAddress::new(0x04001000) };

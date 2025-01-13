@@ -1,148 +1,229 @@
-#![allow(unused)]
+#![allow(unused_macros)]
+#![allow(unused_imports)]
+macro_rules! def_mmio {
+  ($addr:literal = $name:ident : $t:ty $(; $comment:expr )?) => {
+    // redirect a call **without** an alias list to just pass an empty alias list
+    def_mmio!($addr = $name/[]: $t $(; $comment)? );
+  };
+  ($addr:literal = $name:ident / [ $( $alias:literal ),* ]: $t:ty $(; $comment:expr )?) => {
+    $(#[doc = $comment])?
+    $(#[doc(alias = $alias)])*
+    #[allow(missing_docs)]
+    pub const $name: $t = unsafe { <$t>::new($addr) };
+  };
+}
+pub(crate) use def_mmio;
 
-/// Sets up a constant new constructor for a zeroed value.
-macro_rules! const_new {
+macro_rules! pub_const_fn_new_zeroed {
   () => {
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
     pub const fn new() -> Self {
       Self(0)
     }
   };
 }
-pub(crate) use const_new;
+pub(crate) use pub_const_fn_new_zeroed;
 
-/// Sets up a bitfield integer
-macro_rules! bitfield_int {
-  ($inner:ty; $low:literal ..= $high:literal : $nt:ident, $get:ident, $with:ident, $set:ident) => {
+macro_rules! u32_bool_field {
+  ($bit:expr, $get:ident, $with:ident) => {
     #[inline]
-    pub const fn $get(self) -> $nt {
-      const MASK: $inner = ((1 << ($high - $low + 1)) - 1) << $low;
-      ((self.0 & MASK) >> $low) as $nt
-    }
-    #[inline]
-    pub const fn $with(self, $get: $nt) -> Self {
-      const MASK: $inner = ((1 << ($high - $low + 1)) - 1) << $low;
-      Self(self.0 ^ ((self.0 ^ (($get as $inner) << $low)) & MASK))
-    }
-    #[inline]
-    pub fn $set(&mut self, $get: $nt) {
-      *self = self.$with($get);
-    }
-  };
-}
-pub(crate) use bitfield_int;
-
-/// Sets up a bitfield int wrapped newtype
-macro_rules! bitfield_newtype {
-  ($inner:ty; $low:literal ..= $high:literal : $nt:ident, $get:ident, $with:ident, $set:ident) => {
-    #[inline]
-    pub const fn $get(self) -> $nt {
-      const MASK: $inner = ((1 << ($high - $low + 1)) - 1) << $low;
-      $nt(self.0 & MASK)
-    }
-    #[inline]
-    pub const fn $with(self, $get: $nt) -> Self {
-      const MASK: $inner = ((1 << ($high - $low + 1)) - 1) << $low;
-      Self(self.0 ^ ((self.0 ^ $get.0) & MASK))
-    }
-    #[inline]
-    pub fn $set(&mut self, $get: $nt) {
-      *self = self.$with($get);
-    }
-  };
-}
-pub(crate) use bitfield_newtype;
-
-/// Sets up a bitfield enum (CAUTION: misuse of this can cause UB!)
-macro_rules! bitfield_enum {
-  ($inner:ty; $low:literal ..= $high:literal : $nt:ident, $get:ident, $with:ident, $set:ident) => {
-    // TODO: make this const when we have const transmute
-    #[inline]
-    pub fn $get(self) -> $nt {
-      const MASK: $inner = ((1 << $high) - 1) << $low;
-      unsafe { core::mem::transmute(self.0 & MASK) }
-    }
-    #[inline]
-    pub const fn $with(self, $get: $nt) -> Self {
-      const MASK: $inner = ((1 << $high) - 1) << $low;
-      Self(self.0 ^ ((self.0 ^ $get as $inner) & MASK))
-    }
-    #[inline]
-    pub fn $set(&mut self, $get: $nt) {
-      *self = self.$with($get);
-    }
-  };
-}
-pub(crate) use bitfield_enum;
-
-/// Sets up a bitfield bool
-macro_rules! bitfield_bool {
-  ($inner:ty; $bit:literal, $get:ident, $with:ident, $set:ident) => {
-    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
     pub const fn $get(self) -> bool {
-      (self.0 & (1 << $bit)) != 0
+      bitfrob::u32_get_bit($bit, self.0)
     }
     #[inline]
-    pub const fn $with(self, $get: bool) -> Self {
-      Self(self.0 ^ ((($get as $inner).wrapping_neg() ^ self.0) & (1 << $bit)))
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $with(self, b: bool) -> Self {
+      Self(bitfrob::u32_with_bit($bit, self.0, b))
+    }
+  };
+  (inverted $bit:expr, $get:ident, $with:ident) => {
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $get(self) -> bool {
+      !bitfrob::u32_get_bit($bit, self.0)
     }
     #[inline]
-    pub fn $set(&mut self, $get: bool) {
-      *self = self.$with($get);
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $with(self, b: bool) -> Self {
+      Self(bitfrob::u32_with_bit($bit, self.0, !b))
     }
   };
 }
-pub(crate) use bitfield_bool;
+pub(crate) use u32_bool_field;
 
-/// Adds bitwise ops for this type
-macro_rules! impl_bitwise_ops {
-  ($outer:ty) => {
-    impl core::ops::Not for $outer {
-      type Output = Self;
-      #[inline]
-      fn not(self) -> Self {
-        Self(!self.0)
+macro_rules! u32_enum_field {
+  ($low:literal - $high:literal : $t:ty, $get:ident, $with:ident) => {
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $get(self) -> $t {
+      unsafe {
+        core::mem::transmute::<u32, $t>(bitfrob::u32_get_region(
+          $low, $high, self.0,
+        ))
       }
     }
-    impl core::ops::BitAnd for $outer {
-      type Output = $outer;
-      #[inline]
-      fn bitand(self, rhs: Self) -> Self {
-        Self(self.0 & rhs.0)
-      }
-    }
-    impl core::ops::BitOr for $outer {
-      type Output = $outer;
-      #[inline]
-      fn bitor(self, rhs: Self) -> Self {
-        Self(self.0 | rhs.0)
-      }
-    }
-    impl core::ops::BitXor for $outer {
-      type Output = $outer;
-      #[inline]
-      fn bitxor(self, rhs: Self) -> Self {
-        Self(self.0 ^ rhs.0)
-      }
-    }
-    // // // // //
-    impl core::ops::BitAndAssign for $outer {
-      #[inline]
-      fn bitand_assign(&mut self, rhs: Self) {
-        self.0 &= rhs.0
-      }
-    }
-    impl core::ops::BitOrAssign for $outer {
-      #[inline]
-      fn bitor_assign(&mut self, rhs: Self) {
-        self.0 |= rhs.0
-      }
-    }
-    impl core::ops::BitXorAssign for $outer {
-      #[inline]
-      fn bitxor_assign(&mut self, rhs: Self) {
-        self.0 ^= rhs.0
-      }
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $with(self, val: $t) -> Self {
+      Self(bitfrob::u32_with_region($low, $high, self.0, val as u32))
     }
   };
 }
-pub(crate) use impl_bitwise_ops;
+pub(crate) use u32_enum_field;
+
+macro_rules! u32_int_field {
+  ($low:literal - $high:literal, $get:ident, $with:ident) => {
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $get(self) -> u32 {
+      bitfrob::u32_get_value($low, $high, self.0)
+    }
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $with(self, val: u32) -> Self {
+      Self(bitfrob::u32_with_value($low, $high, self.0, val))
+    }
+  };
+}
+pub(crate) use u32_int_field;
+
+macro_rules! u16_bool_field {
+  ($bit:expr, $get:ident, $with:ident) => {
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $get(self) -> bool {
+      bitfrob::u16_get_bit($bit, self.0)
+    }
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $with(self, b: bool) -> Self {
+      Self(bitfrob::u16_with_bit($bit, self.0, b))
+    }
+  };
+  (inverted $bit:expr, $get:ident, $with:ident) => {
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $get(self) -> bool {
+      !bitfrob::u16_get_bit($bit, self.0)
+    }
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $with(self, b: bool) -> Self {
+      Self(bitfrob::u16_with_bit($bit, self.0, !b))
+    }
+  };
+}
+pub(crate) use u16_bool_field;
+
+macro_rules! u16_enum_field {
+  ($low:literal - $high:literal : $t:ty, $get:ident, $with:ident) => {
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $get(self) -> $t {
+      unsafe {
+        core::mem::transmute::<u16, $t>(bitfrob::u16_get_region(
+          $low, $high, self.0,
+        ))
+      }
+    }
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $with(self, val: $t) -> Self {
+      Self(bitfrob::u16_with_region($low, $high, self.0, val as u16))
+    }
+  };
+}
+pub(crate) use u16_enum_field;
+
+macro_rules! u16_int_field {
+  ($low:literal - $high:literal, $get:ident, $with:ident) => {
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $get(self) -> u16 {
+      bitfrob::u16_get_value($low, $high, self.0)
+    }
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $with(self, val: u16) -> Self {
+      Self(bitfrob::u16_with_value($low, $high, self.0, val))
+    }
+  };
+}
+pub(crate) use u16_int_field;
+
+macro_rules! u8_bool_field {
+  ($bit:expr, $get:ident, $with:ident) => {
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $get(self) -> bool {
+      bitfrob::u8_get_bit($bit, self.0)
+    }
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $with(self, b: bool) -> Self {
+      Self(bitfrob::u8_with_bit($bit, self.0, b))
+    }
+  };
+}
+pub(crate) use u8_bool_field;
+
+macro_rules! u8_enum_field {
+  ($low:literal - $high:literal : $t:ty, $get:ident, $with:ident) => {
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $get(self) -> $t {
+      unsafe {
+        core::mem::transmute::<u8, $t>(bitfrob::u8_get_region(
+          $low, $high, self.0,
+        ))
+      }
+    }
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $with(self, val: $t) -> Self {
+      Self(bitfrob::u8_with_region($low, $high, self.0, val as u8))
+    }
+  };
+}
+pub(crate) use u8_enum_field;
+
+macro_rules! u8_int_field {
+  ($low:literal - $high:literal, $get:ident, $with:ident) => {
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $get(self) -> u8 {
+      bitfrob::u8_get_value($low, $high, self.0)
+    }
+    #[inline]
+    #[must_use]
+    #[allow(missing_docs)]
+    pub const fn $with(self, val: u8) -> Self {
+      Self(bitfrob::u8_with_value($low, $high, self.0, val))
+    }
+  };
+}
+pub(crate) use u8_int_field;

@@ -1,3 +1,4 @@
+use core::ffi::c_void;
 use crate::dma::*;
 use voladdress::*;
 use fixed::types::I9F23;
@@ -96,15 +97,15 @@ impl BG2{
     pub fn dma_clear(){
       use crate::dma::*;
       const FILL_CONTROL: DmaControl = DmaControl::new()
-      .with_src_addr(SrcAddrControl::Fixed)
-      .with_dest_addr(DestAddrControl::Increment)
-      .with_transfer_u32(true)
+      .with_src_addr_control(SrcAddrControl::Fixed)
+      .with_dest_addr_control(DestAddrControl::Increment)
+      .with_transfer_32bit(true)
       .with_enabled(true);
     unsafe{
-      DMA3SAD.write(0);
-      DMA3DAD.write((Self::WORDS.index(0).as_usize() as *mut u32) as usize);
-      DMA3CNT_L.write(0x3000);
-      DMA3CNT_H.write(FILL_CONTROL);
+      DMA3_SRC.write(0 as *const c_void);
+      DMA3_DEST.write(((Self::WORDS.index(0).as_usize() as *mut u32) as usize) as *mut c_void);
+      DMA3_COUNT.write(0x3000);
+      DMA3_CONTROL.write(FILL_CONTROL);
     }
     }
 }

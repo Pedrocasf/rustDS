@@ -10,6 +10,7 @@ edition = "2018"
 [dependencies]
 voladdress = "1.4.0"
 embedded-graphics-core = "0.4.0"
+bitfrob = "1"
 gba-proc-macro = "0.6"
 #fixed = "2.0.0-alpha.28.0"
 typenum = "1.17.0"

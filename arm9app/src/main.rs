@@ -21,8 +21,7 @@ use arm9rt::dma::SrcAddrControl::Fixed;
 use fixed::types::I13F3;
 use arm9rt::video::e3d::GXFIFO;
 entry!(main);
-const Triangle:[u32;13] = [
-    12,
+const Triangle:[u32;12] = [
     FIFO_COMMAND_PACK(GXFIFO::BEGIN_VTXS as u32, GXFIFO::COLOR as u32, GXFIFO::VTX_16 as u32, GXFIFO::COLOR as u32),
     Begin::Triangles as u32,
     RGB15(31,0,0) as u32,
@@ -37,7 +36,7 @@ fn main() -> ! {
     start_fnt();
     IME.write(0);
     IE.write(0);
-    let dispcnt = DispCnt::new().with_BG0_3D(true).with_bg_mode(6).with_display_mode(1);
+    let dispcnt = DispCnt::new().with_BG0_en(true).with_BG0_3D(true).with_bg_mode(0).with_display_mode(1);
     DISPCNT.write(dispcnt);
     let e3d = GL::new(None, None);
     let mut r = 0;
@@ -63,8 +62,9 @@ fn main() -> ! {
         if KEYINPUT.read() & 0x0080 == 0 {
             
         }
+        GL::call_list(&Triangle);
         GL::clear_color(r, g, b, 31);
-        GL::flush(SwapBuffers::new());
+        GL::flush(SwapBuffers::new().with_auto_sort(true).with_depth_buffering(true));
         //particle.draw_sprites(&mut bg3, &TEXTURES);
         unsafe{
             asm!("swi 0x50000")

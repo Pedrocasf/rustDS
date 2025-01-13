@@ -7,14 +7,13 @@ pub mod POWCNT{
     pub struct PowCnt1Opts(u16);
     
     impl PowCnt1Opts {
-        const_new!();
-        bitfield_bool!(u16;0,get_LCDs,with_LCDs,set_LCDs);
-        bitfield_bool!(u16;1,get_A,with_A,set_A);
-        bitfield_bool!(u16;2,get_Render3D,with_Render3D,set_Render3D);
-        bitfield_bool!(u16;3,get_Geometry3D,with_Geometry3D,set_Geometry3D);
-        bitfield_bool!(u16;4,get_B,with_B,set_B);
-        bitfield_bool!(u16;15,get_DisplaySwap,with_DisplaySwap,set_DisplaySwap);
+        pub_const_fn_new_zeroed!();
+        u16_bool_field!(0,get_LCDs,with_LCDs);
+        u16_bool_field!(1,get_A,with_A);
+        u16_bool_field!(2,get_Render3D,with_Render3D);
+        u16_bool_field!(3,get_Geometry3D,with_Geometry3D);
+        u16_bool_field!(4,get_B,with_B);
+        u16_bool_field!(15,get_DisplaySwap,with_DisplaySwap);
     }
     pub const POWCNT1: VolAddress<PowCnt1Opts, Safe, Safe> = unsafe { VolAddress::new(0x04000304) };
-    impl_bitwise_ops!(PowCnt1Opts);
 }

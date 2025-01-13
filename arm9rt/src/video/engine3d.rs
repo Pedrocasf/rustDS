@@ -1,11 +1,16 @@
 use voladdress::{Safe, VolAddress};
-use crate::macros::{bitfield_bool, bitfield_int, const_new};
+use crate::macros::{};
 
 pub mod e3d{
+    use core::ffi::c_void;
     use simba::scalar::FixedI13F3;
     use crate::macros::*;
     use crate::power::POWCNT::{POWCNT1, PowCnt1Opts};
     use voladdress::*;
+    use crate::dma::{DmaControl, DMA0_CONTROL, DMA0_COUNT, DMA0_DEST, DMA0_SRC, DMA3_CONTROL};
+    use crate::dma::DestAddrControl::Fixed;
+    use crate::dma::DmaStartTime::Fifo3D;
+    use crate::panic;
     use crate::video::e3d::GlMatrixModeEnum::GlTexture;
     //use crate::video::old_engine3d::e3d::{gl_load_identity, gl_matrix_mode, gl_matrix_pop, MatrixIdentity, MatrixMode, MatrixPop, SwapBuffers, GXSTAT, MTXIDENTITY, MTXMODE, MTXPOP, SWAPBUFFRES};
     pub const fn FIFO_COMMAND_PACK(c1:u32,c2:u32,c3:u32,c4:u32)->u32{
@@ -72,11 +77,11 @@ pub mod e3d{
     #[repr(transparent)]
     pub struct ViewPort(u32);
     impl ViewPort {
-        const_new!();
-        bitfield_int!(u32;0..=7:u32,x1,with_x1,set_x1);
-        bitfield_int!(u32;8..=15:u32,y1,with_y1,set_y1);
-        bitfield_int!(u32;16..=23:u32,x2,with_x2,set_x2);
-        bitfield_int!(u32;24..=31:u32,y2,with_y2,set_y2);
+        pub_const_fn_new_zeroed!();
+        u32_int_field!(0 - 7,x1,with_x1);
+        u32_int_field!(8 - 15,y1,with_y1);
+        u32_int_field!(16 - 23,x2,with_x2);
+        u32_int_field!(24 - 31,y2,with_y2);
     }
 
 
@@ -93,39 +98,38 @@ pub mod e3d{
     pub struct Disp3DCntOpts(u16);
 
     impl Disp3DCntOpts {
-        const_new!();
-        bitfield_bool!(u16;0,get_enable_texture_mapping,with_enable_texture_mapping,set_enable_texture_mapping);
-        bitfield_bool!(u16;1,get_toon_highlight_shading,with_toon_highlight_shading,set_toon_highlight_shading);
-        bitfield_bool!(u16;2,get_enable_alpha_test ,with_enable_alpha_test ,set_enable_alpha_test);
-        bitfield_bool!(u16;3,get_enable_alpha_blending,with_enable_alpha_blending,set_enable_alpha_blending);
-        bitfield_bool!(u16;4,get_enable_anti_aliasing,with_enable_anti_aliasing,set_enable_anti_aliasing);
-        bitfield_bool!(u16;5,get_enable_edge_marking,with_enable_edge_marking,set_enable_edge_marking);
-        bitfield_bool!(u16;6,get_fog_color_alpha,with_fog_color_alpha ,set_fog_color_alpha );
-        bitfield_bool!(u16;7,get_eenable_fog,with_eenable_fog,set_eenable_fog);
-        bitfield_int !(u16;8..=11:u16,get_fog_depth_shift,with_fog_depth_shift,set_fog_depth_shift);
-        bitfield_bool!(u16;12,get_undeflow_ack,with_undeflow_ack,set_undeflow_ack);
-        bitfield_bool!(u16;13,get_overflow_ack,with_overflow_ack,set_overflow_ack);
-        bitfield_bool!(u16;14,get_enable_rear_bmp,with_enable_rear_bmp,set_enable_rear_bmp);
+        pub_const_fn_new_zeroed!();
+        u16_bool_field!(0,get_enable_texture_mapping,with_enable_texture_mapping);
+        u16_bool_field!(1,get_toon_highlight_shading,with_toon_highlight_shading);
+        u16_bool_field!(2,get_enable_alpha_test ,with_enable_alpha_test);
+        u16_bool_field!(3,get_enable_alpha_blending,with_enable_alpha_blending);
+        u16_bool_field!(4,get_enable_anti_aliasing,with_enable_anti_aliasing);
+        u16_bool_field!(5,get_enable_edge_marking,with_enable_edge_marking);
+        u16_bool_field!(6,get_fog_color_alpha,with_fog_color_alpha);
+        u16_bool_field!(7,get_enable_fog,with_enable_fog);
+        u16_int_field!(8 - 11,get_fog_depth_shift,with_fog_depth_shift);
+        u16_bool_field!(12,get_undeflow_ack,with_undeflow_ack);
+        u16_bool_field!(13,get_overflow_ack,with_overflow_ack);
+        u16_bool_field!(14,get_enable_rear_bmp,with_enable_rear_bmp);
     }
-    impl_bitwise_ops!(Disp3DCntOpts);
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
     #[repr(transparent)]
     pub struct MatrixMode(u32);
     impl MatrixMode{
-        const_new!();
-        bitfield_enum!(u32;0..=1:GlMatrixModeEnum,get_matrix_mode,with_matrix_mode,set_matrix_mode);
+        pub_const_fn_new_zeroed!();
+        u32_enum_field!(0 - 1:GlMatrixModeEnum,get_matrix_mode,with_matrix_mode);
     }
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
     #[repr(transparent)]
     pub struct ClearColor(u32);
     impl ClearColor {
-        const_new!();
-        bitfield_int!(u32;0..=4:u8,get_r,with_r,set_r);
-        bitfield_int!(u32;5..=9:u8,get_g,with_g,set_g);
-        bitfield_int!(u32;10..=14:u8,get_b,with_b,set_b);
-        bitfield_bool!(u32;15,get_enable_fog,with_enable_fog,set_enable_fog);
-        bitfield_int!(u32;16..=20:u8,get_a,with_a,set_a);
-        bitfield_int!(u32;24..=29:u8,get_poly_id,with_poly_id,set_poly_id);
+        pub_const_fn_new_zeroed!();
+        u32_int_field!(0 - 4,get_r,with_r);
+        u32_int_field!(5 - 9,get_g,with_g);
+        u32_int_field!(10 - 14,get_b,with_b);
+        u32_bool_field!(15,get_enable_fog,with_enable_fog);
+        u32_int_field!(16 - 20,get_a,with_a);
+        u32_int_field!(24-29,get_poly_id,with_poly_id);
     }
     pub const CLEAR_COLOR :VolAddress<ClearColor,(),Safe> = unsafe { VolAddress::new(0x04000350) };
     pub const CLEAR_DEPTH:VolAddress<FixedI13F3,(),Safe> = unsafe{VolAddress::new(0x04000354)};
@@ -134,15 +138,15 @@ pub mod e3d{
     #[repr(transparent)]
     pub struct SwapBuffers(u32);
     impl SwapBuffers{
-        const_new!();
-        bitfield_bool!(u32;0,get_auto_sort,with_auto_sort,set_auto_sort);
-        bitfield_bool!(u32;1,get_depth_buffering,with_depth_buffering,set_depth_buffering);
+        pub_const_fn_new_zeroed!();
+        u32_bool_field!(0,get_auto_sort,with_auto_sort);
+        u32_bool_field!(1,get_depth_buffering,with_depth_buffering);
     }
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
     #[repr(transparent)]
     pub struct MatrixIdentity(i32);
     impl MatrixIdentity{
-        const_new!();
+        pub_const_fn_new_zeroed!();
     }
 
     pub struct GL{
@@ -152,21 +156,20 @@ pub mod e3d{
     #[repr(transparent)]
     pub struct GxStatOpts(u32);
     impl GxStatOpts{
-        const_new!();
-        bitfield_int! (u32;8..=12:u32,get_position_vector_matrix_stack,with_position_vector_matrix_stack,set_position_vector_matrix_stack);
-        bitfield_bool!(u32;13,get_projection_matrix_stack,with_projection_matrix_stack,set_projection_matrix_stack);
-        bitfield_bool!(u32;14,get_matrix_stack_busy,with_matrix_stack_busy,set_matrix_stack_busy);
-        bitfield_bool!(u32;15,get_matrix_stack_error,with_matrix_stack_error,set_matrix_stack_error);
-        bitfield_bool!(u32;27,get_geometry_engine_busy,with_geometry_engine_busy,set_geometry_engine_busy);
-        bitfield_bool!(u32;29,get_clear_fifo,with_clear_fifo,set_clear_fifo);
+        pub_const_fn_new_zeroed!();
+        u32_int_field!(8 - 12,get_position_vector_matrix_stack,with_position_vector_matrix_stack);
+        u32_bool_field!(13,get_projection_matrix_stack,with_projection_matrix_stack);
+        u32_bool_field!(14,get_matrix_stack_busy,with_matrix_stack_busy);
+        u32_bool_field!(15,get_matrix_stack_error,with_matrix_stack_error);
+        u32_bool_field!(27,get_geometry_engine_busy,with_geometry_engine_busy);
+        u32_bool_field!(29,get_clear_fifo,with_clear_fifo);
     }
-    impl_bitwise_ops!(GxStatOpts);
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
     #[repr(transparent)]
-    pub struct MatrixPop(i32);
+    pub struct MatrixPop(u32);
     impl MatrixPop{
-        const_new!();
-        bitfield_int !(i32;0..=5:i32,get_matrix_pop,with_matrix_pop,set_matrix_pop);
+        pub_const_fn_new_zeroed!();
+        u32_int_field!(0 - 5,get_matrix_pop,with_matrix_pop);
     }
     #[repr(u32)]
     pub enum TexFormat {
@@ -183,8 +186,8 @@ pub mod e3d{
     #[repr(transparent)]
     pub struct TexImageParam(u32);
     impl TexImageParam{
-        const_new!();
-        bitfield_enum!(u32;26..=28:TexFormat,tex_format,with_tex_format,set_tex_format);
+        pub_const_fn_new_zeroed!();
+        u32_enum_field!(26 - 28:TexFormat,tex_format,with_tex_format);
     }
     #[repr(u32)]
     pub enum PolygonMode {
@@ -197,8 +200,8 @@ pub mod e3d{
     #[repr(transparent)]
     pub struct PolygonAttr(u32);
     impl PolygonAttr{
-        const_new!();
-        bitfield_enum!(u32;4..=5:PolygonMode,polygon_mode,with_polygon_mode,set_polygon_mode);
+        pub_const_fn_new_zeroed!();
+        u32_enum_field!(4 - 5:PolygonMode,polygon_mode,with_polygon_mode);
     }
     impl GL{
         const VIEWPORT:VolAddress<ViewPort,(),Safe> = unsafe { VolAddress::new(0x04000580) };
@@ -217,12 +220,12 @@ pub mod e3d{
                 POWCNT1.write(p);
             }else{
                 let powcnt1_default = PowCnt1Opts::new()
-                .with_LCDs(true)
-                .with_A(true)
+                .with_LCDs(false)
+                .with_A(false)
                 .with_B(true)
                 .with_Render3D(true)
                 .with_Geometry3D(true)
-                .with_DisplaySwap(true);
+                .with_DisplaySwap(false);
                 POWCNT1.write(powcnt1_default);
             }
             if let Some(c) = disp3dcnt{
@@ -233,7 +236,7 @@ pub mod e3d{
             while Self::GXSTAT.read().get_geometry_engine_busy(){};
             Self::GXSTAT.write(GxStatOpts::default().with_clear_fifo(true));
             Self::reset_matrix_stack();
-            Self::flush(SwapBuffers::new());
+            Self::flush(SwapBuffers::new().with_auto_sort(true).with_depth_buffering(true));
             Self::clear_color(0,0,0,31);
             Self::clear_poly_id(0);
             Self::clear_depth(FixedI13F3::from_bits(0x7FFF));
@@ -243,29 +246,31 @@ pub mod e3d{
             Self::load_identity();
             Self::matrix_mode(GlMatrixModeEnum::GlModelView);
             Self::load_identity();
-            Self::matrix_mode(GlTexture);
+            Self::matrix_mode(GlMatrixModeEnum::GlTexture);
             Self::load_identity();
             GL{
 
             }
         }
         pub fn reset_matrix_stack(){
-            while Self::GXSTAT.read().get_matrix_stack_busy(){
+            while {
                 let mut stat = Self::GXSTAT.read();
-                stat.set_matrix_stack_error(false);
+                stat = stat.with_matrix_stack_error(false);
                 Self::GXSTAT.write(stat);
-            }
-            if Self::GXSTAT.read().get_projection_matrix_stack(){
+                Self::GXSTAT.read().get_matrix_stack_busy()
+            }{}
+            if !Self::GXSTAT.read().get_projection_matrix_stack(){
                 Self::matrix_mode(GlMatrixModeEnum::GlProjection);
                 Self::matrix_pop(1);
+
             }
             Self::matrix_mode(GlMatrixModeEnum::GlModelView);
-            Self::matrix_pop((Self::GXSTAT.read().get_position_vector_matrix_stack() & 0x1F)as i32);
+            Self::matrix_pop((Self::GXSTAT.read().get_position_vector_matrix_stack() & 0x1F)as u32);
             Self::matrix_mode(GlMatrixModeEnum::GlModelView);
             Self::load_identity();
             Self::matrix_mode(GlMatrixModeEnum::GlProjection);
             Self::load_identity();
-            Self::matrix_mode(GlTexture);
+            Self::matrix_mode(GlMatrixModeEnum::GlTexture);
             Self::load_identity();
         }
         pub fn view_port(viewport: ViewPort){
@@ -282,7 +287,7 @@ pub mod e3d{
             Self::SWAPBUFFRES.write(sb);
         }
 
-        pub fn matrix_pop(count:i32){
+        pub fn matrix_pop(count:u32){
             let pop_count = MatrixPop::new().with_matrix_pop(count);
             Self::MTXPOP.write(pop_count);
         }
@@ -290,13 +295,27 @@ pub mod e3d{
             Self::MTXIDENTITY.write(MatrixIdentity::new());
         }
         pub fn clear_color(r:u8, g:u8, b:u8, a:u8){
-            CLEAR_COLOR.write(ClearColor::new().with_r(r).with_g(g).with_b(b).with_a(a));
+            CLEAR_COLOR.write(ClearColor::new().with_r(r as u32).with_g(g as u32).with_b(b as u32).with_a(a as u32));
         }
         pub fn clear_depth(d:FixedI13F3){
             CLEAR_DEPTH.write(d);
         }
         pub fn clear_poly_id(id:u8){
-            CLEAR_COLOR.write(ClearColor::new().with_poly_id(id));
+            CLEAR_COLOR.write(ClearColor::new().with_poly_id(id as u32));
+        }
+        pub fn call_list(list:&[u32]){
+            let count = list[0];
+            //TODO: check for dma usage
+            //while(DMA)
+            unsafe {
+                DMA0_SRC.write(list.as_ptr() as *const c_void);
+                DMA0_DEST.write(0x4000400 as *mut c_void);
+                DMA0_COUNT.write(list.len() as u16);
+                DMA0_CONTROL.write(DmaControl::new().with_enabled(true).with_dest_addr_control(Fixed).with_transfer_32bit(true).with_start_time(Fifo3D));
+            }
+            while DMA0_CONTROL.read().start_time() != Fifo3D {
+                
+            }
         }
     }
 
