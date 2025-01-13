@@ -62,9 +62,13 @@ fn main() -> ! {
         if KEYINPUT.read() & 0x0080 == 0 {
             
         }
+
+        GL::clear_poly_id(63);
+        GL::poly_format(PolygonAttr::new().with_show_front(true).with_alpha(0x1F));
         GL::call_list(&Triangle);
-        GL::clear_color(r, g, b, 31);
-        GL::flush(SwapBuffers::new().with_auto_sort(true).with_depth_buffering(true));
+        GL::matrix_pop(1);
+        //GL::clear_color(r, g, b, 31);
+        GL::flush(SwapBuffers::new());//SwapBuffers::new().with_auto_sort(true).with_depth_buffering(true));
         //particle.draw_sprites(&mut bg3, &TEXTURES);
         unsafe{
             asm!("swi 0x50000")

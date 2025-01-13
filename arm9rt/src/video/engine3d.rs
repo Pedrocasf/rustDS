@@ -202,6 +202,9 @@ pub mod e3d{
     impl PolygonAttr{
         pub_const_fn_new_zeroed!();
         u32_enum_field!(4 - 5:PolygonMode,polygon_mode,with_polygon_mode);
+        u32_bool_field!(6,get_show_back,with_show_back);
+        u32_bool_field!(7,get_show_front,with_show_front);
+        u32_int_field!(16 - 20,get_alpha,with_alpha);
     }
     impl GL{
         const VIEWPORT:VolAddress<ViewPort,(),Safe> = unsafe { VolAddress::new(0x04000580) };
@@ -241,7 +244,7 @@ pub mod e3d{
             Self::clear_poly_id(0);
             Self::clear_depth(FixedI13F3::from_bits(0x7FFF));
             Self::TEX_IMAGE_PARAM.write(TexImageParam(0));
-            Self::POLYGON_ATTR.write(PolygonAttr(0));
+            Self::POLYGON_ATTR.write(PolygonAttr(0).with_show_back(true).with_show_front(true));
             Self::matrix_mode(GlMatrixModeEnum::GlProjection);
             Self::load_identity();
             Self::matrix_mode(GlMatrixModeEnum::GlModelView);
@@ -316,6 +319,9 @@ pub mod e3d{
             while DMA0_CONTROL.read().start_time() != Fifo3D {
                 
             }
+        }
+        pub fn poly_format(p:PolygonAttr){
+            Self::POLYGON_ATTR.write(p);
         }
     }
 
