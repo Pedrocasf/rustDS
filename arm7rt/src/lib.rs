@@ -6,8 +6,8 @@ pub mod consts;
 pub mod regs;
 
 use consts::*;
-use core::panic::PanicInfo;
 use core::arch::asm;
+use core::panic::PanicInfo;
 use core::ptr;
 pub use regs::*;
 #[panic_handler]
@@ -36,19 +36,21 @@ pub unsafe extern "C" fn Reset() -> ! {
         static mut _siirq: u8;
     }
     asm!(
-	"mov	r5, 0x12",
-	"msr	cpsr, r5",
-	"ldr	sp, =__sp_irq",
-
-	"mov	r5, #0x13",
-	"msr	cpsr, r5",
-	"ldr	sp, =__sp_svc",
-
-	"mov	r5, #0x1F",
-	"msr	cpsr, r5",
-    "ldr	sp, =__sp_usr",
+        "mov	r5, 0x12",
+        "msr	cpsr, r5",
+        "ldr	sp, =__sp_irq",
+        "mov	r5, #0x13",
+        "msr	cpsr, r5",
+        "ldr	sp, =__sp_svc",
+        "mov	r5, #0x1F",
+        "msr	cpsr, r5",
+        "ldr	sp, =__sp_usr",
     );
-    ptr::copy_nonoverlapping(&raw const _siirq as *const u8, &raw mut __irq_vector as *mut u8, 4);
+    ptr::copy_nonoverlapping(
+        &raw const _siirq as *const u8,
+        &raw mut __irq_vector as *mut u8,
+        4,
+    );
     extern "C" {
         static mut _sbss: u8;
         static mut _ebss: u8;
@@ -60,7 +62,7 @@ pub unsafe extern "C" fn Reset() -> ! {
 
     let count = &raw const _ebss as *const u8 as usize - &raw const _sbss as *const u8 as usize;
     ptr::write_bytes(&raw mut _sbss as *mut u8, 0, count);
-
+    MBK9.write(0);
     extern "Rust" {
         fn main() -> !;
     }

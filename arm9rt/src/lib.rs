@@ -1,37 +1,30 @@
 #![no_std]
-#![feature(asm)]
 #![feature(trait_alias)]
-#![feature(associated_type_bounds)]
-#![feature(const_raw_ptr_deref)]
-#![feature(default_alloc_error_handler)]
-
+#![feature(allocator_api)]
 pub(crate) use voladdress::{VolAddress, VolBlock};
+extern crate alloc;
 extern crate buddy_alloc;
 extern crate derive_more;
 extern crate simba;
-extern crate alloc;
 pub mod consts;
-pub mod video;
-pub mod irq;
-pub mod regs;
-pub mod sync;
-pub mod write;
 pub mod dma;
+pub mod dynamic_array;
+pub mod irq;
 pub mod macros;
 pub mod power;
-pub mod dynamic_array;
+pub mod regs;
+pub mod sync;
+pub mod video;
+pub mod write;
+use buddy_alloc::*;
 pub use consts::*;
+use core::arch::asm;
 use core::panic::PanicInfo;
 use core::ptr;
-use core::arch::asm;
-use buddy_alloc::*;
-pub use video::{
-    vram::*,
-    a,
-};
 pub use irq::*;
 pub use regs::*;
 pub use sync::*;
+pub use video::{a, vram::*};
 pub use write::*;
 
 #[link_section = ".secure"]
@@ -39,11 +32,11 @@ pub use write::*;
 pub static SECURE_AREA: [u8; 0x800] = [0; 0x800];
 
 extern "C" {
-    static mut _sheap :u8;
+    static mut _sheap: u8;
     static mut _heap_size: u8;
 }
-const FAST_HEAP_SIZE: usize = 8 *1024* 1024; // 32 KB
-const HEAP_SIZE: usize = 4 * 1024 * 1024; // 1M
+const FAST_HEAP_SIZE: usize = 8 * 1024 * 1024; // 8 MB
+const HEAP_SIZE: usize = 4 * 1024 * 1024; // 4M
 static mut FAST_HEAP: Heap<FAST_HEAP_SIZE> = Heap([0u8; FAST_HEAP_SIZE]);
 static mut HEAP: Heap<HEAP_SIZE> = Heap([0u8; HEAP_SIZE]);
 const LEAF_SIZE: usize = 16;
@@ -86,16 +79,14 @@ pub unsafe extern "C" fn Reset() -> ! {
     */
     asm!(
         "mov	r5, #0x12",
-	    "msr	cpsr, r5",
-	    "ldr	sp, =__sp_irq",
-
-	    "mov	r5, #0x13",
-	    "msr	cpsr, r5",
-	    "ldr	sp, =__sp_svc",
-
-	    "mov	r5, #0x1F",
-	    "msr	cpsr, r5",
-	    "ldr	sp, =__sp_usr",
+        "msr	cpsr, r5",
+        "ldr	sp, =__sp_irq",
+        "mov	r5, #0x13",
+        "msr	cpsr, r5",
+        "ldr	sp, =__sp_svc",
+        "mov	r5, #0x1F",
+        "msr	cpsr, r5",
+        "ldr	sp, =__sp_usr",
     );
     extern "C" {
         fn __libnds_mpu_setup();

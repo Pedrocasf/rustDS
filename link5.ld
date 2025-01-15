@@ -24,8 +24,8 @@ __sp_irq	=	__sp_svc - 0x100;
 __sp_usr	=	__sp_irq - 0x100;
 
 SECTIONS {
-    
-    .secure : 
+
+    .secure :
     {
         KEEP(*(.secure));
         . = ALIGN(4);
@@ -52,7 +52,7 @@ SECTIONS {
     } > ewram
 
     _sidata = LOADADDR(.data);
-    
+
     .bss (NOLOAD):
     {
         _sbss = .;
@@ -60,7 +60,7 @@ SECTIONS {
         _ebss = .;
         . = ALIGN(4);
     } > ewram
-
+/*
     .heap (NOLOAD) :
     {
         _sheap = .;
@@ -68,7 +68,7 @@ SECTIONS {
         . = ALIGN(4);
         _eheap = .;
     } > ewram
-
+*/
 
   /* rust-lld demands we keep the `section header string table` */
     .shstrtab        0 : { *(.shstrtab) }
