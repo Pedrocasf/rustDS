@@ -21,10 +21,11 @@ macro_rules! println {
 
 const FNT: &[u8] = include_bytes!("amiga.fnt");
 pub fn start_fnt() {
+    let vram_cnt = VramCnt::new().with_vram_enable(true).with_vram_mst(1);
     DISPCNT_B.write(0x00010100);
     BG0CNT_B.write(0x0400);
-    VRAMCNT_H.write(0x81);
-    VRAMCNT_I.write(0x81);
+    VRAMCNT_H.write(vram_cnt);
+    VRAMCNT_I.write(vram_cnt);
     BG_PALLETES_B.index(0x0).write(rgb8!(0, 0, 0));
     BG_PALLETES_B.index(0x1).write(rgb8!(0, 0, 171));
     BG_PALLETES_B.index(0x2).write(rgb8!(0, 171, 0));

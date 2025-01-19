@@ -1,13 +1,13 @@
 MEMORY {
-    ewram	: ORIGIN = 0x02000000, LENGTH = 16M
-	dtcm	: ORIGIN = 0x02400000, LENGTH = 16K
-	vectors	: ORIGIN = 0x01000000, LENGTH = 256
-	itcm	: ORIGIN = 0x01000100, LENGTH = 32K - 256
+    ewram	: ORIGIN = 0x02000000, LENGTH = 4M
+	itcm	: ORIGIN = 0x01000000, LENGTH = 32K
+	swram   : ORIGIN = 0x03000000, LENGTH = 32K
+	dtcm    : ORIGIN = 0x03008000, LENGTH = 16K
+	vectors	: ORIGIN = 0x01007F00, LENGTH = 256
 }
 
 ENTRY(Reset)
 
-PROVIDE(_heap_size = 4M - 18816);
 
 __ewram_end	    = ORIGIN(ewram) + LENGTH(ewram);
 __sheap_end	    = ORIGIN(ewram) + LENGTH(ewram);

@@ -1,14 +1,25 @@
 use voladdress::{VolAddress, VolBlock, Safe};
+use crate::macros::*;
+use crate::video::e3d::Disp3DCntOpts;
 
-pub const VRAMCNT_A: VolAddress<u8, Safe, Safe> = unsafe { VolAddress::new(0x4000240) };
-pub const VRAMCNT_B: VolAddress<u8, Safe, Safe> = unsafe { VolAddress::new(0x4000241) };
-pub const VRAMCNT_C: VolAddress<u8, Safe, Safe> = unsafe { VolAddress::new(0x4000242) };
-pub const VRAMCNT_D: VolAddress<u8, Safe, Safe> = unsafe { VolAddress::new(0x4000243) };
-pub const VRAMCNT_E: VolAddress<u8, Safe, Safe> = unsafe { VolAddress::new(0x4000244) };
-pub const VRAMCNT_F: VolAddress<u8, Safe, Safe> = unsafe { VolAddress::new(0x4000245) };
-pub const VRAMCNT_G: VolAddress<u8, Safe, Safe> = unsafe { VolAddress::new(0x4000246) };
-pub const VRAMCNT_H: VolAddress<u8, Safe, Safe> = unsafe { VolAddress::new(0x4000248) };
-pub const VRAMCNT_I: VolAddress<u8, Safe, Safe> = unsafe { VolAddress::new(0x4000249) };
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[repr(transparent)]
+pub struct VramCnt(u8);
+impl VramCnt {
+    pub_const_fn_new_zeroed!();
+    u8_bool_field!(7,get_vram_enable,with_vram_enable);
+    u8_int_field!(0 - 2,get_vram_mst,with_vram_mst);
+    u8_int_field!(3 - 4,get_vram_offset,with_vram_offset);
+}
+pub const VRAMCNT_A: VolAddress<VramCnt, Safe, Safe> = unsafe { VolAddress::new(0x4000240) };
+pub const VRAMCNT_B: VolAddress<VramCnt, Safe, Safe> = unsafe { VolAddress::new(0x4000241) };
+pub const VRAMCNT_C: VolAddress<VramCnt, Safe, Safe> = unsafe { VolAddress::new(0x4000242) };
+pub const VRAMCNT_D: VolAddress<VramCnt, Safe, Safe> = unsafe { VolAddress::new(0x4000243) };
+pub const VRAMCNT_E: VolAddress<VramCnt, Safe, Safe> = unsafe { VolAddress::new(0x4000244) };
+pub const VRAMCNT_F: VolAddress<VramCnt, Safe, Safe> = unsafe { VolAddress::new(0x4000245) };
+pub const VRAMCNT_G: VolAddress<VramCnt, Safe, Safe> = unsafe { VolAddress::new(0x4000246) };
+pub const VRAMCNT_H: VolAddress<VramCnt, Safe, Safe> = unsafe { VolAddress::new(0x4000248) };
+pub const VRAMCNT_I: VolAddress<VramCnt, Safe, Safe> = unsafe { VolAddress::new(0x4000249) };
 
 pub const BG_PALLETES: VolBlock<u16, Safe, Safe, 0x100> = unsafe { VolBlock::new(0x05000000) };
 pub const FG_PALLETES: VolBlock<u16, Safe, Safe, 0x100> = unsafe { VolBlock::new(0x05000200) };

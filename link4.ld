@@ -1,5 +1,5 @@
 MEMORY {
-	wram   : ORIGIN = 0x03800000, LENGTH = 96K
+	wram   : ORIGIN = 0x03800000, LENGTH = 64K
 }
 
 ENTRY(Reset)

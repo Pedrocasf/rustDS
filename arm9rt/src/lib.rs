@@ -16,6 +16,8 @@ pub mod regs;
 pub mod sync;
 pub mod video;
 pub mod write;
+mod new_wram;
+
 use buddy_alloc::*;
 pub use consts::*;
 use core::arch::asm;
@@ -35,8 +37,8 @@ extern "C" {
     static mut _sheap: u8;
     static mut _heap_size: u8;
 }
-const FAST_HEAP_SIZE: usize = 8 * 1024 * 1024; // 8 MB
-const HEAP_SIZE: usize = 4 * 1024 * 1024; // 4M
+const FAST_HEAP_SIZE: usize = 16 * 1024; // 16KB
+const HEAP_SIZE: usize = 12 * 1024 * 1024; // 12MB
 static mut FAST_HEAP: Heap<FAST_HEAP_SIZE> = Heap([0u8; FAST_HEAP_SIZE]);
 static mut HEAP: Heap<HEAP_SIZE> = Heap([0u8; HEAP_SIZE]);
 const LEAF_SIZE: usize = 16;

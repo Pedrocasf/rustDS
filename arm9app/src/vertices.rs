@@ -77,7 +77,7 @@ impl TexCoords{
         ])
     }
 }
-const TEXTURE:&[u8] = include_bytes!("../../eldpack/terrain.raw");
+//const TEXTURE:&[u8] = include_bytes!("../../eldpack/terrain.raw");
 const GRASS:TexCoords = TexCoords::tex_coords(
     Vec2i(
         1,

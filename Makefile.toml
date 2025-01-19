@@ -1,0 +1,14 @@
+[tasks.all]
+dependencies = [
+    "arm9app",
+    "arm7app",
+    "ndstool"
+]
+
+[tasks.arm9app]
+command = "cargo"
+args = [
+    "build",
+    "--release",
+    ""
+]

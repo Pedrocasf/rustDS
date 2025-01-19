@@ -5,7 +5,6 @@ pub use vram::*;
 pub mod engine3d;
 pub use engine3d::*;
 pub mod a;
-mod vram_alloc;
 
 pub const DISPCNT: VolAddress<VideoMode, Safe, Safe> = unsafe { VolAddress::new(0x04000000) };
 pub const DISPCNT_SUB: VolAddress<VideoMode, Safe, Safe> = unsafe { VolAddress::new(0x04001000) };

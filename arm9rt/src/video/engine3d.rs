@@ -2,6 +2,7 @@ use voladdress::{Safe, VolAddress};
 use crate::macros::{};
 
 pub mod e3d{
+    pub use super::super::vram;
     use core::ffi::c_void;
     use simba::scalar::FixedI13F3;
     use crate::macros::*;
@@ -237,7 +238,7 @@ pub mod e3d{
                 Self::DISP3DCNT.write(Disp3DCntOpts::new());
             }
             while Self::GXSTAT.read().get_geometry_engine_busy(){};
-            Self::GXSTAT.write(GxStatOpts::default().with_clear_fifo(true));
+            Self::GXSTAT.write(GxStatOpts::default().with_clear_fifo(true).with_matrix_stack_error(true));
             Self::reset_matrix_stack();
             Self::flush(SwapBuffers::new().with_auto_sort(true).with_depth_buffering(true));
             Self::clear_color(0,0,0,31);
@@ -256,19 +257,18 @@ pub mod e3d{
             }
         }
         pub fn reset_matrix_stack(){
-            while {
+            while Self::GXSTAT.read().get_matrix_stack_busy(){
                 let mut stat = Self::GXSTAT.read();
-                stat = stat.with_matrix_stack_error(false);
+                stat = stat.with_matrix_stack_error(true);
                 Self::GXSTAT.write(stat);
-                Self::GXSTAT.read().get_matrix_stack_busy()
-            }{}
+            }
             if !Self::GXSTAT.read().get_projection_matrix_stack(){
                 Self::matrix_mode(GlMatrixModeEnum::GlProjection);
+                Self::load_identity();
                 Self::matrix_pop(1);
-
             }
             Self::matrix_mode(GlMatrixModeEnum::GlModelView);
-            Self::matrix_pop((Self::GXSTAT.read().get_position_vector_matrix_stack() & 0x1F)as u32);
+            Self::matrix_pop(Self::GXSTAT.read().get_position_vector_matrix_stack() & 0x1F);
             Self::matrix_mode(GlMatrixModeEnum::GlModelView);
             Self::load_identity();
             Self::matrix_mode(GlMatrixModeEnum::GlProjection);

@@ -38,6 +38,11 @@ fn main() -> ! {
     IE.write(0);
     let dispcnt = DispCnt::new().with_BG0_en(true).with_BG0_3D(true).with_bg_mode(0).with_display_mode(1);
     DISPCNT.write(dispcnt);
+    let vram_cnt = VramCnt::new().with_vram_enable(true).with_vram_mst(3);
+    VRAMCNT_A.write(vram_cnt.with_vram_offset(0));
+    VRAMCNT_B.write(vram_cnt.with_vram_offset(1));
+    VRAMCNT_C.write(vram_cnt.with_vram_offset(2));
+    VRAMCNT_D.write(vram_cnt.with_vram_offset(3));
     let e3d = GL::new(None, None);
     let mut r = 0;
     let mut g = 0;
