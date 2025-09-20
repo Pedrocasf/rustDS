@@ -1,6 +1,7 @@
 #![no_std]
 #![feature(trait_alias)]
 #![feature(allocator_api)]
+#[warn(static_mut_refs)]
 pub(crate) use voladdress::{VolAddress, VolBlock};
 extern crate alloc;
 extern crate buddy_alloc;
@@ -29,11 +30,11 @@ pub use sync::*;
 pub use video::{a, vram::*};
 pub use write::*;
 
-#[link_section = ".secure"]
-#[no_mangle]
+#[unsafe(link_section = ".secure")]
+#[unsafe(no_mangle)]
 pub static SECURE_AREA: [u8; 0x800] = [0; 0x800];
 
-extern "C" {
+unsafe extern "C" {
     static mut _sheap: u8;
     static mut _heap_size: u8;
 }
@@ -59,9 +60,9 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
     println!("{}", _panic);
     halt()
 }
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn Reset() -> ! {
-    extern "C" {
+    unsafe extern "C" {
         static mut __iwram_start: u8;
         static mut __iwram_top: u8;
 
@@ -90,12 +91,12 @@ pub unsafe extern "C" fn Reset() -> ! {
         "msr	cpsr, r5",
         "ldr	sp, =__sp_usr",
     );
-    extern "C" {
+    unsafe extern "C" {
         fn __libnds_mpu_setup();
     }
     __libnds_mpu_setup();
 
-    extern "C" {
+    unsafe extern "C" {
         static mut _sbss: u8;
         static mut _ebss: u8;
 
@@ -113,7 +114,7 @@ pub unsafe extern "C" fn Reset() -> ! {
 
     ptr::write_volatile(0x03FFFFFC as *mut extern "C" fn(), IRQ_HANDLE);
 
-    extern "Rust" {
+    unsafe extern "Rust" {
         fn main() -> !;
     }
     main()

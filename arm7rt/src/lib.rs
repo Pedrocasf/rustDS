@@ -1,12 +1,11 @@
 #![no_std]
-#![feature(start)]
 extern crate voladdress;
 
 pub mod consts;
 pub mod regs;
 
 use consts::*;
-use core::arch::asm;
+use core::arch::{asm, naked_asm};
 use core::panic::PanicInfo;
 use core::ptr;
 pub use regs::*;
@@ -17,11 +16,34 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
         unsafe { asm!("hlt") }
     }
 }
-
-#[no_mangle]
+#[unsafe(naked)]
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn boot() -> ! {
+        unsafe extern "C" {
+            static mut __sp_irq: u8;
+            static mut __sp_svc: u8;
+            static mut __sp_usr: u8;
+        }
+        naked_asm!(
+            "mov	r5, #12",
+            "msr	cpsr, r5",
+            "ldr	sp, ={}",
+            "mov	r5, #0x13",
+            "msr	cpsr, r5",
+            "ldr	sp, ={}",
+            "mov	r5, #0x1F",
+            "msr	cpsr, r5",
+            "ldr	sp, ={}",
+            "j Reset",
+            sym __sp_irq,
+            sym __sp_svc,
+            sym __sp_usr,
+        )
+    }
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn Reset() -> ! {
     IME.write(0x00000000);
-    extern "C" {
+    unsafe extern "C" {
         static mut __iwram_start: u8;
         static mut __iwram_top: u8;
 
@@ -29,29 +51,14 @@ pub unsafe extern "C" fn Reset() -> ! {
         static mut __irq_flags: u8;
         static mut __irq_flagsaux: u8;
 
-        static mut __sp_irq: u8;
-        static mut __sp_svc: u8;
-        static mut __sp_usr: u8;
-
         static mut _siirq: u8;
     }
-    asm!(
-        "mov	r5, 0x12",
-        "msr	cpsr, r5",
-        "ldr	sp, =__sp_irq",
-        "mov	r5, #0x13",
-        "msr	cpsr, r5",
-        "ldr	sp, =__sp_svc",
-        "mov	r5, #0x1F",
-        "msr	cpsr, r5",
-        "ldr	sp, =__sp_usr",
-    );
     ptr::copy_nonoverlapping(
         &raw const _siirq as *const u8,
         &raw mut __irq_vector as *mut u8,
         4,
     );
-    extern "C" {
+    unsafe extern "C" {
         static mut _sbss: u8;
         static mut _ebss: u8;
 
@@ -63,10 +70,10 @@ pub unsafe extern "C" fn Reset() -> ! {
     let count = &raw const _ebss as *const u8 as usize - &raw const _sbss as *const u8 as usize;
     ptr::write_bytes(&raw mut _sbss as *mut u8, 0, count);
     MBK9.write(0);
-    extern "Rust" {
+    unsafe extern "Rust" {
         fn main() -> !;
     }
-    main()
+    unsafe {main()}
 }
 #[macro_export]
 macro_rules! entry {
@@ -119,7 +126,7 @@ pub fn u8_to_u32(val: &[u8]) -> u32 {
     (b3 << 24) | (b2 << 16) | (b1 << 8) | (b0 << 0)
 }
 
-#[link_section = ".irq"]
+#[unsafe(link_section = ".irq")]
 pub static IRQ_HANDLE: unsafe extern "C" fn() = irq_handler;
 
 unsafe extern "C" fn irq_handler() {

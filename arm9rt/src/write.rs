@@ -86,7 +86,7 @@ impl fmt::Write for Writer {
 pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
     unsafe {
-        extern "Rust" {
+        unsafe extern "Rust" {
             static mut WRITER: &'static mut dyn Write;
         }
         WRITER.write_fmt(args).unwrap();
@@ -95,16 +95,17 @@ pub fn _print(args: fmt::Arguments) {
 #[macro_export]
 macro_rules! global {
     ($writer:expr, $name:ident, $type:ident) => {
-        #[no_mangle]
-        pub static mut $name: &dyn $type = &$writer;
+         use alloc::rc::Rc;
+        #[unsafe(no_mangle)]
+        pub static $name: Rc<&dyn $type> = $writer;
     };
 }
-pub trait Writee = core::fmt::Write + Sync;
+pub trait Writee = core::fmt::Write + Sync + Send;
 #[macro_export]
 macro_rules! global_writer {
     ($name:ident) => {
         global!(
-            Writer {
+            & Writer {
                 console_x: 0,
                 console_y: 0
             },

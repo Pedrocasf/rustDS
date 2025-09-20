@@ -1,9 +1,9 @@
 [workspace]
 members = [
     "arm7app",
-    #"arm7rt",
+    "arm7rt",
     "arm9app",
-    #"arm9rt"
+    "arm9rt"
 ]
 
 [profile.release]

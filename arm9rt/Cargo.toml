@@ -2,7 +2,7 @@
 name = "arm9rt"
 version = "0.1.0"
 authors = ["pedrosf"]
-edition = "2018"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -12,12 +12,12 @@ voladdress = "1.4.0"
 embedded-graphics-core = "0.4.0"
 bitfrob = "1"
 gba-proc-macro = "0.6"
-typenum = "1.17.0"
-fixed = "2.0.0-alpha.28.0"
+typenum = "1.18.0"
+fixed = "1.29.0"
 buddy-alloc = "0.6.0"
 
 [dependencies.derive_more]
-version = "1.0.0"
+version = "2.0.1"
 default-features = false
 features = ["add"]
 
@@ -27,7 +27,7 @@ default-features = false
 features = ["alloc", "libm-force"]
 
 [dependencies.simba]
-version = "0.9.0"
+version = "0.9.1"
 default-features = false
 features = ["partial_fixed_point_support"]
 

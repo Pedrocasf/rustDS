@@ -1,7 +1,7 @@
 use crate::regs::*;
 use crate::*;
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static IRQ_HANDLE: extern "C" fn() = irq_handler;
 
 extern "C" fn irq_handler() {
