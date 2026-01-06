@@ -1,12 +1,11 @@
 #![no_std]
 #![feature(trait_alias)]
 #![feature(allocator_api)]
-#[warn(static_mut_refs)]
+#[allow(static_mut_refs)]
 pub(crate) use voladdress::{VolAddress, VolBlock};
 extern crate alloc;
-extern crate buddy_alloc;
 extern crate derive_more;
-extern crate simba;
+mod critical_section;
 pub mod consts;
 pub mod dma;
 pub mod dynamic_array;
@@ -19,7 +18,6 @@ pub mod video;
 pub mod write;
 mod new_wram;
 
-use buddy_alloc::*;
 pub use consts::*;
 use core::arch::asm;
 use core::panic::PanicInfo;
@@ -36,23 +34,15 @@ pub static SECURE_AREA: [u8; 0x800] = [0; 0x800];
 
 unsafe extern "C" {
     static mut _sheap: u8;
-    static mut _heap_size: u8;
+    static mut ___sheap_end: u8;
 }
-const FAST_HEAP_SIZE: usize = 16 * 1024; // 16KB
-const HEAP_SIZE: usize = 12 * 1024 * 1024; // 12MB
-static mut FAST_HEAP: Heap<FAST_HEAP_SIZE> = Heap([0u8; FAST_HEAP_SIZE]);
-static mut HEAP: Heap<HEAP_SIZE> = Heap([0u8; HEAP_SIZE]);
-const LEAF_SIZE: usize = 16;
-#[repr(align(64))]
-struct Heap<const S: usize>([u8; S]);
-#[cfg_attr(not(test), global_allocator)]
-static ALLOC: NonThreadsafeAlloc = unsafe {
-    let fast_param = FastAllocParam::new(FAST_HEAP.0.as_ptr(), FAST_HEAP_SIZE);
-    let buddy_param = BuddyAllocParam::new(HEAP.0.as_ptr(), HEAP_SIZE, LEAF_SIZE);
-    NonThreadsafeAlloc::new(fast_param, buddy_param)
-};
+use embedded_alloc::LlffHeap as Heap;
 
-global_writer!(WRITER);
+#[global_allocator]
+static HEAP: Heap = Heap::empty();
+
+use write::Writer;
+global_writer!(Writer { console_x: 0, console_y: 0 });
 
 #[panic_handler]
 fn panic(_panic: &PanicInfo<'_>) -> ! {
@@ -106,13 +96,17 @@ pub unsafe extern "C" fn Reset() -> ! {
 
     }
 
-    let count = &_ebss as *const u8 as usize - &_sbss as *const u8 as usize;
-    ptr::write_bytes(&mut _sbss as *mut u8, 0, count);
+    let count = &raw const _ebss as *const u8 as usize - &raw const _sbss as *const u8 as usize;
+    ptr::write_bytes(&raw mut _sbss as *mut u8, 0, count);
 
-    let count = &_edata as *const u8 as usize - &_sdata as *const u8 as usize;
-    ptr::copy_nonoverlapping(&_sidata as *const u8, &mut _sdata as *mut u8, count);
+    let count = &raw const _edata as *const u8 as usize - &raw const _sdata as *const u8 as usize;
+    ptr::copy_nonoverlapping(&_sidata as *const u8, &raw mut _sdata as *mut u8, count);
 
     ptr::write_volatile(0x03FFFFFC as *mut extern "C" fn(), IRQ_HANDLE);
+
+    unsafe {
+        embedded_alloc::init!(HEAP, 8*1024*1024);
+    }
 
     unsafe extern "Rust" {
         fn main() -> !;
@@ -123,16 +117,18 @@ pub unsafe extern "C" fn Reset() -> ! {
 #[macro_export]
 macro_rules! entry {
     ($path:path) => {
-        #[export_name = "main"]
+        #[unsafe(export_name = "main")]
         pub unsafe fn __main() -> ! {
+            // type check the given path
             let f: fn() -> ! = $path;
+
             f()
         }
     };
 }
 
 pub fn halt() -> ! {
-    IME.write(0x00000000);
+    IME.write(false);
     unsafe {
         asm!("swi 0x60000");
     };

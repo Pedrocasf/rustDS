@@ -4,7 +4,7 @@ use crate::macros::{};
 pub mod e3d{
     pub use super::super::vram;
     use core::ffi::c_void;
-    use simba::scalar::FixedI13F3;
+    use fixed::types::I13F3;
     use crate::macros::*;
     use crate::power::POWCNT::{POWCNT1, PowCnt1Opts};
     use voladdress::*;
@@ -133,7 +133,7 @@ pub mod e3d{
         u32_int_field!(24-29,get_poly_id,with_poly_id);
     }
     pub const CLEAR_COLOR :VolAddress<ClearColor,(),Safe> = unsafe { VolAddress::new(0x04000350) };
-    pub const CLEAR_DEPTH:VolAddress<FixedI13F3,(),Safe> = unsafe{VolAddress::new(0x04000354)};
+    pub const CLEAR_DEPTH:VolAddress<I13F3,(),Safe> = unsafe{VolAddress::new(0x04000354)};
 
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
     #[repr(transparent)]
@@ -213,12 +213,13 @@ pub mod e3d{
         const MTXIDENTITY :VolAddress<MatrixIdentity,(),Safe> = unsafe { VolAddress::new(0x04000454) };
         const SWAPBUFFRES :VolAddress<SwapBuffers,(),Safe> = unsafe { VolAddress::new(0x04000540) };
         const CLEAR_COLOR :VolAddress<ClearColor,(),Safe> = unsafe { VolAddress::new(0x04000350) };
-        const CLEAR_DEPTH:VolAddress<FixedI13F3,(),Safe> = unsafe{VolAddress::new(0x04000354)};
+        const CLEAR_DEPTH:VolAddress<I13F3,(),Safe> = unsafe{VolAddress::new(0x04000354)};
         const GXSTAT: VolAddress<GxStatOpts, Safe, Safe> = unsafe { VolAddress::new(0x04000600) };
         const MTXPOP :VolAddress<MatrixPop,(),Safe> = unsafe { VolAddress::new(0x04000448) };
         const TEX_IMAGE_PARAM:VolAddress<TexImageParam,(),Safe> = unsafe { VolAddress::new(0x040004A8) };
         const POLYGON_ATTR:VolAddress<PolygonAttr,(),Safe> = unsafe { VolAddress::new(0x040004A4) };
         const MTXMODE :VolAddress<MatrixMode,(),Safe> = unsafe { VolAddress::new(0x04000440) };
+        const LIST_CMDS: VolAddress<u32, (), Safe> = unsafe { VolAddress::new(0x4000400) };
         pub fn new(disp3dcnt:Option<Disp3DCntOpts>, powcnt1:Option<PowCnt1Opts>)->GL{
             if let Some(p) = powcnt1{
                 POWCNT1.write(p);
@@ -243,7 +244,7 @@ pub mod e3d{
             Self::flush(SwapBuffers::new().with_auto_sort(true).with_depth_buffering(true));
             Self::clear_color(0,0,0,31);
             Self::clear_poly_id(0);
-            Self::clear_depth(FixedI13F3::from_bits(0x7FFF));
+            Self::clear_depth(I13F3::from_bits(0x7FFF));
             Self::TEX_IMAGE_PARAM.write(TexImageParam(0));
             Self::POLYGON_ATTR.write(PolygonAttr(0).with_show_back(true).with_show_front(true));
             Self::matrix_mode(GlMatrixModeEnum::GlProjection);
@@ -300,16 +301,19 @@ pub mod e3d{
         pub fn clear_color(r:u8, g:u8, b:u8, a:u8){
             CLEAR_COLOR.write(ClearColor::new().with_r(r as u32).with_g(g as u32).with_b(b as u32).with_a(a as u32));
         }
-        pub fn clear_depth(d:FixedI13F3){
+        pub fn clear_depth(d:I13F3){
             CLEAR_DEPTH.write(d);
         }
         pub fn clear_poly_id(id:u8){
             CLEAR_COLOR.write(ClearColor::new().with_poly_id(id as u32));
         }
         pub fn call_list(list:&[u32]){
-            let count = list[0];
+            for element in list{
+                Self::LIST_CMDS.write(*element);
+            }
+
             //TODO: check for dma usage
-            //while(DMA)
+            /*while(DMA)
             unsafe {
                 DMA0_SRC.write(list.as_ptr() as *const c_void);
                 DMA0_DEST.write(0x4000400 as *mut c_void);
@@ -318,7 +322,7 @@ pub mod e3d{
             }
             while DMA0_CONTROL.read().start_time() != Fifo3D {
                 
-            }
+            }*/
         }
         pub fn poly_format(p:PolygonAttr){
             Self::POLYGON_ATTR.write(p);

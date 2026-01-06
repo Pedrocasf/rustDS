@@ -4,4 +4,4 @@ build-std-features = ["compiler-builtins-mem"]
 [build]
 target = "armv5te-none-eabi"
 [target.armv5te-none-eabi]
-rustflags = ["-C", "link-arg=-Tlink5.ld"]
+rustflags = ["-C", "link-arg=-Tlink5i.ld"]

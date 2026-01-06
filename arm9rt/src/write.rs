@@ -1,3 +1,4 @@
+#[allow(static_mut_refs)]
 use crate::video::vram::*;
 use crate::regs::*;
 use core::fmt;
@@ -87,9 +88,9 @@ pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
     unsafe {
         unsafe extern "Rust" {
-            static mut WRITER: &'static mut dyn Write;
+            static WRITER: &'static mut dyn Writee;
         }
-        WRITER.write_fmt(args).unwrap();
+        //WRITER.write_fmt(args).unwrap();
     }
 }
 #[macro_export]
@@ -97,20 +98,29 @@ macro_rules! global {
     ($writer:expr, $name:ident, $type:ident) => {
          use alloc::rc::Rc;
         #[unsafe(no_mangle)]
-        pub static $name: Rc<&dyn $type> = $writer;
+        pub static $name: &mut dyn $type= &mut $writer;
     };
 }
+
 pub trait Writee = core::fmt::Write + Sync + Send;
 #[macro_export]
 macro_rules! global_writer {
-    ($name:ident) => {
-        global!(
-            & Writer {
-                console_x: 0,
-                console_y: 0
-            },
-            $name,
-            Writee
-        );
+    ($name:expr) => {
+        #[unsafe(no_mangle)]
+        pub static WRITER: &dyn Writee = &$name;
     };
+}
+pub trait Log{
+    type Error;
+    fn log(&mut self, address:u8) -> Result<(), Self::Error>;
+}
+#[macro_export]
+macro_rules! log {
+    ($logger:expr, $string:expr) => {{
+        #[unsafe(export_name = $string)]
+        #[unsafe(link_section=".log")]
+        static SYMBOL:u8 = 0;
+
+        $crate::Log::log(&mut $logger, &SYMBOL as *const u8 as usize as u8);
+    }}
 }

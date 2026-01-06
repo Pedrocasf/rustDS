@@ -12,4 +12,3 @@ dstool:
 clean:
 	$(MAKE) clean -C arm7app
 	$(MAKE) clean -C arm9app
-	$(MAKE) clean -C rsdstool

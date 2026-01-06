@@ -3,12 +3,10 @@ MEMORY {
 	dtcm	: ORIGIN = 0x02400000, LENGTH = 16K
 	vectors	: ORIGIN = 0x01000000, LENGTH = 256
 	itcm	: ORIGIN = 0x01000000, LENGTH = 32K
-	dtcm    : ORIGIN = 0x01004000, LENGTH = 16K
 
 }
 
 ENTRY(Reset)
-
 
 __ewram_end	    = ORIGIN(ewram) + LENGTH(ewram);
 __sheap_end	    = ORIGIN(ewram) + LENGTH(ewram);
@@ -36,6 +34,10 @@ SECTIONS {
     {
         *(.text .text.*);
         . = ALIGN(4);
+    } > ewram
+
+    .log 0 (INFO) : {
+        *(.log);
     } > ewram
 
     .rodata :

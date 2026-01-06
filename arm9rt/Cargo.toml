@@ -14,8 +14,8 @@ bitfrob = "1"
 gba-proc-macro = "0.6"
 typenum = "1.18.0"
 fixed = "1.29.0"
-buddy-alloc = "0.6.0"
-
+embedded-alloc = "0.7.0"
+critical-section = { version = "1.2",features = ["restore-state-bool"]}
 [dependencies.derive_more]
 version = "2.0.1"
 default-features = false
@@ -26,10 +26,10 @@ version = "0.33.2"
 default-features = false
 features = ["alloc", "libm-force"]
 
-[dependencies.simba]
-version = "0.9.1"
-default-features = false
-features = ["partial_fixed_point_support"]
+#[dependencies.simba]
+#version = "0.9.1"
+#default-features = false
+#features = ["partial_fixed_point_support"]
 
 [features]
 default = ["dsi"]

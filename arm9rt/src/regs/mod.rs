@@ -1,7 +1,7 @@
 use voladdress::*;
 use fixed::types::I8F8;
 use crate::macros::*;
-pub const IME: VolAddress<u32, Safe, Safe> = unsafe { VolAddress::new(0x04000208) };
+pub const IME: VolAddress<bool, Safe, Safe> = unsafe { VolAddress::new(0x04000208) };
 pub const IE: VolAddress<u32, Safe, Safe> = unsafe { VolAddress::new(0x04000210) };
 pub const IF: VolAddress<u32, Safe, Safe> = unsafe { VolAddress::new(0x04000214) };
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]

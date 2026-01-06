@@ -34,7 +34,8 @@ const Triangle:[u32;12] = [
 ];
 fn main() -> ! {
     start_fnt();
-    IME.write(0);
+    println!("Hello, world!");
+    IME.write(false);
     IE.write(0);
     let dispcnt = DispCnt::new().with_BG0_en(true).with_BG0_3D(true).with_bg_mode(0).with_display_mode(1);
     DISPCNT.write(dispcnt);
@@ -49,7 +50,7 @@ fn main() -> ! {
     let mut b = 0;
     GL::clear_color(r,g,b,31);
     GL::clear_poly_id(63);
-    GL::clear_depth(FixedI13F3::from_bits(0x7FFF));
+    GL::clear_depth(I13F3::from_bits(0x7FFF));
     let viewport = ViewPort::new().with_x1(0).with_y1(0).with_x2(255).with_y2(191);
     GL::view_port(viewport);
     GL::matrix_mode(GlMatrixModeEnum::GlProjection);

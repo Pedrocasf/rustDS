@@ -1,4 +1,3 @@
-#![cfg(dsi)]
 pub mod new_wram {
     use voladdress::{Safe, VolAddress};
     pub const MBK10: VolAddress<u8, Safe, Safe> = unsafe { VolAddress::new(0x04004040) };

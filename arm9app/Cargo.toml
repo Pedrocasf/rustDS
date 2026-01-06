@@ -8,7 +8,7 @@ edition = "2024"
 
 [dependencies]
 arm9rt = { path = "../arm9rt" }
-embedded-graphics = {version = "0.7.0-beta.1", features = ["fixed_point"]}
+embedded-graphics = {version = "0.8.1", features = ["fixed_point"]}
 fixed = "1.29.0"
 tinybmp = "0.6.0"
 embedded-graphics-core = "0.4.0"
